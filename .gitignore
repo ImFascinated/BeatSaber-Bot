@@ -1,8 +1,8 @@
-﻿/dist
-/guilds
-/user-data
-/node_modules
-/src/config.json
+﻿./dist
+./guilds
+./user-data
+./node_modules
+./src/config.json
 yarn.lock
 yarn-error.log
 tsconfig.json

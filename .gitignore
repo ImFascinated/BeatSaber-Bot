@@ -1,0 +1,8 @@
+﻿/dist
+/guilds
+/user-data
+/node_modules
+yarn.lock
+yarn-error.log
+tsconfig.json
+.idea

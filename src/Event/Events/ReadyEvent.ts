@@ -16,6 +16,6 @@ module.exports = class ReadyEvent extends Event {
     async execute(instance: BatClient) {
         instance.logger.log("Ready!");
         
-        await instance.client.user!.setActivity({name: "?help | v" + instance.version, type: "PLAYING"})
+        await instance.client.user!.setActivity({name: "bs!help | v" + instance.version, type: "PLAYING"})
     }
 }

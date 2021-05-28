@@ -127,7 +127,6 @@ export default class BeatSaberManager extends Manager {
                         console.log(`Failed to fetch map data for song hash ${song.songHash} (status=${response.statusCode})`);
                     }
                     await this.instance.utils.sleep(1).then(async() => {
-                        console.log(response.result!.coverURL)
                         const res = await axios.get("https://beatsaver.com" + response.result!.coverURL,
                             {
                                 responseType: 'arraybuffer',

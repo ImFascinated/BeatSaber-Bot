@@ -98,42 +98,51 @@ export default class CommandManager extends Manager {
         });
     }
 
-    public async loadCommands(instance: BatClient, client: Client, directory: string | undefined, silentLoad?: boolean) {
-        if (directory === undefined) return;
+    public async loadCommands(instance: BatClient, client: Client, directory: string | undefined, silentLoad?: boolean, reload?: boolean): Promise<{ name: string; error: any; }[]> {
+        if (directory === undefined) return [];
+
+        let notLoadedCommands: { name: string; error: any; }[] = [];
         return glob(`${directory}\\**\\*.js`).then(async (commands: any[]) => {
             for (const commandFile of commands) {
-                delete require.cache[commandFile];
                 const { name } = path.parse(commandFile);
-                let File = await require(commandFile);
-                if (!instance.utils.isClass(File)) throw new TypeError(`BatFramework > Command ${name} doesn't export a class!`);
-                const command = await new File(client, name.toLowerCase());
-                if (!(await command instanceof Command)) throw new TypeError(`BatFramework > Command ${name} does not extend CommandBase!`);
+                try {
+                    delete require.cache[commandFile];
+                    let File = await require(commandFile);
+                    if (!instance.utils.isClass(File)) throw new TypeError(`BatFramework > Command ${name} doesn't export a class!`);
+                    const command = await new File(client, name.toLowerCase());
+                    if (!(await command instanceof Command)) throw new TypeError(`BatFramework > Command ${name} does not extend CommandBase!`);
 
-                if (!command.name) {
-                    throw new Error(`BatFramework > Command ${name} doesn't have a name, and therefore cannot be used!`)
+                    if (!command.name) {
+                        throw new Error(`BatFramework > Command ${name} doesn't have a name, and therefore cannot be used!`)
+                    }
+
+                    const missing = [];
+
+                    if (!command.description) {
+                        missing.push("Description");
+                    }
+
+                    if (!command.category) {
+                        missing.push("Category");
+                    }
+
+                    if (missing.length > 0) {
+                        super.logger.warn(`Command "${command.name}" is missing the following properties: ${missing.join(', ')}.`)
+                    }
+
+                    await command.setCommandFile(commandFile);
+                    this.registerCommand(command, command.name.toLowerCase());
+                } catch(e) {
+                    notLoadedCommands.push({ "name": name, "error": e });
                 }
-
-                const missing = [];
-
-                if (!command.description) {
-                    missing.push("Description");
-                }
-
-                if (!command.category) {
-                    missing.push("Category");
-                }
-
-                if (missing.length > 0) {
-                    super.logger.warn(`Command "${command.name}" is missing the following properties: ${missing.join(', ')}.`)
-                }
-                
-                this.registerCommand(await command, await command.name.toLowerCase());
             }
             if (!silentLoad) {
                 if (this._commands.size > 0) {
-                    super.logger.log(`Loaded ${this._commands.size} command${this._commands.size > 1 ? 's' : ''}.`);
+                    super.logger.log(`${reload == true ? "Rel" : "L"}oaded ${this._commands.size} command${this._commands.size > 1 ? 's' : ''}.`);
                 }
             }
+
+            return notLoadedCommands;
         });
     }
 
@@ -152,7 +161,15 @@ export default class CommandManager extends Manager {
     }
 
     public registerCommand(command: Command, name: string) {
-        this._commands.set(name, command)
+        this._commands.set(name, command);
+    }
+
+    public async reloadCommands(instance: BatClient): Promise<{ name: string; error: any; }[]> {
+        for (let command of this._commands) {
+            delete require.cache[require.resolve(command[1].commandFile)];
+        }
+
+        return this.loadCommands(instance, instance.client, `${__dirname}${path.sep}Commands`, false, true);
     }
 
 

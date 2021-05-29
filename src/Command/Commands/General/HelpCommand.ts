@@ -46,6 +46,9 @@ module.exports = class HelpCommand extends Command {
             description += `\n`;
         });
 
+        description += `:beginner: [**[Add me to your server]**](https://discord.com/oauth2/authorize?client_id=847958793468117032&permissions=8&scope=bot)\n\n`
+        description += `:tools: [**[GitHub]**](https://github.com/ImFascinated/BeatSaber-Bot)`
+
         await channel.send(new MessageEmbed()
             .setAuthor("Help")
             .setColor(`#${guildSettings.embedColor}`)

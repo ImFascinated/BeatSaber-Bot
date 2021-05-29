@@ -39,12 +39,13 @@ module.exports = class StatisticsCommand extends Command {
             .setDescription(
                 `
                 **Bot Stats**
-                Guild Count: ${client.guilds.cache.size}
-                Total Users: ${client.users.cache.size}
+                Guild Count: **${client.guilds.cache.size}**
+                Total Users: **${client.users.cache.size}**
+                Uptime: **${instance.utils.formatTime(process.uptime() * 1000)}**
                 
                 **Beat Saber Stats**
-                Total Accounts: ${instance.userDataManager.users.size}
-                Total Linked Accounts: ${totalLinkedAccounts}
+                Total Accounts: **${instance.userDataManager.users.size}**
+                Total Linked Accounts: **${totalLinkedAccounts}**
                 `
             )
         );

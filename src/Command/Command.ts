@@ -57,7 +57,6 @@ export default class Command {
 			.replaceAll("%prefix%", this._guild!.prefix);
 	}
 
-
 	get name(): string {
 		return this._name;
 	}
@@ -90,11 +89,11 @@ export default class Command {
 		return this._botOwnerOnly;
 	}
 
-	get instance(): BatClient  {
+	get instance(): BatClient {
 		return <BatClient>this._instance;
 	}
 
-	get guild(): Guild | undefined {
-		return this._guild;
+	get guild(): Guild {
+		return <Guild>this._guild;
 	}
 }

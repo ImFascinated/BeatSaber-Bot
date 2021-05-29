@@ -17,7 +17,7 @@ module.exports = class RecentSongCommand extends Command {
         super("recentsong", {
             category: "beatsaber",
             description: "Check out your most recent play",
-            usage: "[] [offset]"
+            usage: "[user] [offset]"
         });
     }
 

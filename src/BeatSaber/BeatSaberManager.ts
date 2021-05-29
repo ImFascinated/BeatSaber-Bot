@@ -18,8 +18,7 @@ import ScoreReply from "./ScoreSaber/ScoreReply";
 import Manager from "../Utils/Manager";
 import {LeaderboardReply} from "./ScoreSaber/LeaderboardReply";
 import {PlayerInfo} from "./ScoreSaber/PlayerInfo";
-import Discord, {MessageEmbed} from "discord.js";
-import moment from "moment";
+import Discord from "discord.js";
 
 const xOffset = 16;
 
@@ -31,6 +30,7 @@ export default class BeatSaberManager extends Manager {
     readonly restClientBeatSaver: RestClient = new RestClient("(+http://www.example.com/ScraperBot.html)", this.BEATSAVER_HOST);
     private readonly backgroundBuffer: Buffer;
     private readonly noImageFoundBuffer: Buffer;
+    private readonly playerStatsBackgroundBuffer: Buffer;
 
     private readonly songCache: Map<String, Buffer> = new Map<String, Buffer>();
 
@@ -38,6 +38,7 @@ export default class BeatSaberManager extends Manager {
         super(instance);
         this.backgroundBuffer = fs.readFileSync(path.resolve(__dirname, '../../resources/images/HeaderBackground.png'));
         this.noImageFoundBuffer = fs.readFileSync(path.resolve(__dirname, '../../resources/images/NoImageFound.jpg'));
+        this.playerStatsBackgroundBuffer = fs.readFileSync(path.resolve(__dirname, '../../resources/images/PlayerStatsBackground.png'));
         Canvas.registerFont(path.resolve(__dirname, '../../resources/fonts/RobotoCondensed-Bold.ttf'), {
             family: "Roboto",
             style: "bold"
@@ -98,6 +99,156 @@ export default class BeatSaberManager extends Manager {
         return canvas.toBuffer();
     }
 
+    async createProfileImage(player: Player): Promise<Buffer> {
+        const canvas = Canvas.createCanvas(1200, 600);
+        const context = canvas.getContext('2d');
+
+        const topSongs = await this.fetchScores(player.playerInfo.playerId, "TOP", 0);
+        const topSong = topSongs![0];
+
+        const background = await Canvas.loadImage(this.playerStatsBackgroundBuffer)
+        context.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+        // Player Info Panel
+
+        const avatar = await Canvas.loadImage(`https://new.scoresaber.com/api/static/avatars/${player.playerInfo.playerId}.jpg`);
+        context.save();
+        this.roundedImage(context, 60, 130, 200, 200, 10);
+        context.clip();
+        context.drawImage(avatar, 60, 130, 200, 200);
+        context.restore();
+
+        context.font = `40px Roboto`;
+        context.fillStyle = '#fff';
+        context.textAlign = 'left';
+        let name = player.playerInfo.playerName;
+        if (name.length > 23)
+            name = player.playerInfo.playerName.substring(0, 23) + "..."
+        context.fillText(`${name}`, 200 + 80, 175);
+
+        const target1CountryImage = await Canvas.loadImage(`https://www.countryflags.io/${player.playerInfo.country}/flat/64.png`);
+        context.drawImage(target1CountryImage, 200 + 80 , 185, 44, 44);
+
+        context.font = `40px Roboto`;
+        context.fillStyle = '#fff';
+        context.fillText(`${player.playerInfo.country}`, 200 + 80 + 55, 220);
+
+        context.font = `40px Roboto`;
+        context.fillStyle = '#C0C0C0';
+        context.fillText(`#${player.playerInfo.rank}`, 200 + 80, 275);
+
+        context.font = `32px Roboto`;
+        context.fillStyle = '#fff';
+        context.fillText(`#${player.playerInfo.countryRank}`, (200 + 80) + (player.playerInfo.rank.toString().length * 27.5), 275);
+
+        context.font = `40px Roboto`;
+        context.fillStyle = '#fff';
+        context.fillText(`${player.playerInfo.pp}pp`, 200 + 80, 315);
+
+
+        // Best Play Panel
+
+        const response: IRestResponse<MapInfo> = await this.restClientBeatSaver.get<MapInfo>(`maps/by-hash/${topSong.songHash}`);
+        if (response.result === null) {
+            console.log(`Failed to fetch map data for song hash ${topSong.songHash} (status=${response.statusCode})`);
+        }
+        await this.instance.utils.sleep(1).then(async() => {
+            const res = await axios.get("https://beatsaver.com" + response.result!.coverURL,
+                {
+                    responseType: 'arraybuffer',
+                    headers: { "User-Agent": { "ScraperBot": "1.0" } }
+                });
+            const artImage = await Canvas.loadImage(Buffer.from(res.data, "utf-8"));
+            context.save();
+            this.roundedImage(context, canvas.width - (25 + 175), 410, 160, 160, 10);
+            context.clip();
+            context.drawImage(artImage, canvas.width - (25 + 175), 410, 160, 160);
+            context.restore();
+        });
+
+        context.font = `46px Roboto`;
+        context.fillStyle = '#a0a0a0';
+        context.textAlign = 'left';
+        context.fillText(`TOP PLAY`, 44, 460);
+
+        context.font = `43px Roboto`;
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'left';
+        context.fillText(`${topSong.songName}`, 44, 505);
+
+        context.font = `33px Roboto`;
+        const diff = this.formatDiff(topSong).toUpperCase();
+        context.fillStyle = this.getDiffColor(diff);
+        context.textAlign = 'left';
+        context.fillText(`${diff}`, 44, 544);
+
+        context.font = `43px Roboto`;
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'right';
+        context.fillText(`${topSong.pp.toFixed(2)}PP`, canvas.width - (48 + 175), 505);
+
+        const songMods = topSong.mods.split(",") || [topSong.mods];
+        const acc = (((songMods.includes("NF") ? topSong.score * 2 : topSong.score) / topSong.maxScore) * 100).toFixed(2);
+        context.font = `33px Roboto`;
+        context.fillStyle = '#a0a0a0';
+        context.textAlign = 'right';
+        context.fillText(`${acc == "Infinity" ? "??" : acc}%`, canvas.width - (48 + 175), 544);
+
+        // Player Stats Panel
+
+        context.font = `43px Roboto`;
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'left';
+        context.fillText(`Acc`, canvas.width - 350, 163);
+
+        context.font = `43px Roboto`;
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'left';
+        context.fillText(`${player.scoreStats.averageRankedAccuracy.toFixed(2)}%`, canvas.width - 250, 163);
+
+        context.font = `38px Roboto`;
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'left';
+        context.fillText(`Score`, canvas.width - 350, 208);
+
+        context.font = `38px Roboto`;
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'left';
+        context.fillText(`${numeral(player.scoreStats.totalScore).format('0,0')}`, canvas.width - 250, 208);
+
+        context.font = `24px Roboto`;
+        context.fillStyle = '#a0a0a0';
+        context.textAlign = 'left';
+        context.fillText(`Ranked`, canvas.width - 350, 246);
+
+        context.font = `24px Roboto`;
+        context.fillStyle = '#a0a0a0';
+        context.textAlign = 'left';
+        context.fillText(`${numeral(player.scoreStats.totalRankedScore).format('0,0')}`, canvas.width - 250, 246);
+
+        context.font = `38px Roboto`;
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'left';
+        context.fillText(`Plays`, canvas.width - 350, 292);
+
+        context.font = `38px Roboto`;
+        context.fillStyle = '#ffffff';
+        context.textAlign = 'left';
+        context.fillText(`${player.scoreStats.totalPlayCount}`, canvas.width - 250, 292);
+
+        context.font = `24px Roboto`;
+        context.fillStyle = '#a0a0a0';
+        context.textAlign = 'left';
+        context.fillText(`Ranked`, canvas.width - 350, 328);
+
+        context.font = `24px Roboto`;
+        context.fillStyle = '#a0a0a0';
+        context.textAlign = 'left';
+        context.fillText(`${player.scoreStats.rankedPlayCount}`, canvas.width - 250, 328);
+
+        return canvas.toBuffer();
+    }
+
     async createSongsImage(player: Player, type: string): Promise<Buffer | undefined> {
         const canvas = Canvas.createCanvas(1200, 1000);
         const context = canvas.getContext('2d');
@@ -122,8 +273,8 @@ export default class BeatSaberManager extends Manager {
             let textOffset = 170;
 
             // Song Art
-            if (this.songCache.has(song.songHash)) {
-                const artImage = await Canvas.loadImage(this.songCache.get(song.songHash)!);
+            if (this.hasCachedImage(song.songHash)) {
+                const artImage = await Canvas.loadImage(this.getCachedImage(song.songHash)!);
 
                 context.drawImage(artImage, 15, y + 10, 160, 160);
             } else {
@@ -141,7 +292,7 @@ export default class BeatSaberManager extends Manager {
                         const artImage = await Canvas.loadImage(Buffer.from(res.data, "utf-8"));
                         context.drawImage(artImage, 15, y + 10, 160, 160);
 
-                        this.songCache.set(song.songHash, Buffer.from(res.data, "utf-8"));
+                        this.cacheImage(song.songHash, Buffer.from(res.data, "utf-8"));
                     });
                 });
             }
@@ -201,10 +352,7 @@ export default class BeatSaberManager extends Manager {
             context.fillText(`${formatDistance(time, new Date(), { addSuffix: true }).toUpperCase()}`, canvas.width - 15, textY);
 
             // Difficulty
-            const diff = song.difficultyRaw
-                .replaceAll("_", "")
-                .replaceAll("SoloStandard", "")
-                .replaceAll("ExpertPlus", "Expert Plus");
+            const diff = this.formatDiff(song);
             context.textAlign = 'left';
             context.font = `30px Roboto`;
             context.fillStyle = this.getDiffColor(diff);
@@ -481,12 +629,7 @@ export default class BeatSaberManager extends Manager {
             "Accuracy"
         ];
 
-        const songInfo = this.toDiff(song.difficultyRaw
-                .replaceAll("_", "")
-                .replaceAll("SoloStandard", "")
-                .replaceAll("ExpertPlus", "Expert Plus"),
-            response.result!.metadata.characteristics[0]
-        )
+        const songInfo = this.toDiff(this.formatDiff(song), response.result!.metadata.characteristics[0])
 
         for (const type of types) {
             switch (type) {
@@ -662,19 +805,19 @@ export default class BeatSaberManager extends Manager {
     private getDiffColor(diff: string): string {
         switch (diff) {
             // green, aqua, orange, red & purple
-            case "Easy": {
+            case "EASY": {
                 return "#33FF33";
             }
-            case "Normal": {
+            case "NORMAL": {
                 return "#00ffff";
             }
-            case "Hard": {
+            case "HARD": {
                 return "#fc9303";
             }
-            case "Expert": {
+            case "EXPERT": {
                 return "#e71837";
             }
-            case "Expert Plus": {
+            case "EXPERT+": {
                 return "#8f48db";
             }
         }
@@ -715,5 +858,41 @@ export default class BeatSaberManager extends Manager {
                 }
             }
         }, 30000);
+    }
+
+    private roundedImage(canvas: Canvas.CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number){
+        canvas.beginPath();
+        canvas.moveTo(x + radius, y);
+        canvas.lineTo(x + width - radius, y);
+        canvas.quadraticCurveTo(x + width, y, x + width, y + radius);
+        canvas.lineTo(x + width, y + height - radius);
+        canvas.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        canvas.lineTo(x + radius, y + height);
+        canvas.quadraticCurveTo(x, y + height, x, y + height - radius);
+        canvas.lineTo(x, y + radius);
+        canvas.quadraticCurveTo(x, y, x + radius, y);
+        canvas.closePath();
+    }
+
+    private formatDiff(song: Score) {
+         return song.difficultyRaw
+            .replaceAll("_", "")
+            .replaceAll("SoloStandard", "")
+            .replaceAll("ExpertPlus", "Expert+")
+            .toUpperCase()
+
+    }
+
+    private cacheImage(songHash: string, buffer: Buffer) {
+        this.songCache.set(songHash, buffer);
+        super.log("Cached image: " + songHash);
+    }
+
+    private getCachedImage(songHash: string) {
+        return this.songCache.get(songHash);
+    }
+
+    private hasCachedImage(songHash: string) {
+        return this.songCache.has(songHash);
     }
 }

@@ -17,7 +17,7 @@ module.exports = class TopSongCommand extends Command {
         super("topsong", {
             category: "beatsaber",
             description: "Check your best play",
-            usage: "[offset]"
+            usage: "[user] [offset]"
         });
     }
 

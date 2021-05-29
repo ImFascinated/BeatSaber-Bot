@@ -10,7 +10,7 @@ import BeatSaberManager from "../BeatSaber/BeatSaberManager";
 export default class BatClient extends Client {
 
 	private readonly _token: string = "";
-	private readonly _version: string = "0.5.0";
+	private readonly _version: string = "0.6.1";
 	private readonly _embedFooter: string = "Created by Fascinated#4735 v" + this._version;
 
 	private readonly _client: Client;

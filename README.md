@@ -27,5 +27,5 @@ If you have any suggestions or features you want to see, send me a dm on discord
 • `bs!uptime` - Shows the bots uptime<br />
 
 **Settings**<br />
-• `bs!embedcolor` - Set the guilds prefix<br />
+• `bs!embedcolor` - Set the embed color<br />
 • `bs!prefix` - Set the guilds prefix<br />

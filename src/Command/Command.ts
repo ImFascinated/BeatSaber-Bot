@@ -13,7 +13,8 @@ export default class Command {
 	private readonly _aliases: string[];
 	private readonly _permissions: PermissionString[];
 	private readonly _commandTips: string[];
-	
+	private readonly _botOwnerOnly: boolean;
+
 	private _instance: BatClient | undefined;
 	private _guild: Guild | undefined;
 
@@ -26,7 +27,8 @@ export default class Command {
 			usage = "",
 			aliases = [],
 			permissions = [],
-			commandTips = []
+			commandTips = [],
+			botOwnerOnly = false
 		} = options
 		
 		this._description = description;
@@ -35,6 +37,7 @@ export default class Command {
 		this._aliases = aliases;
 		this._permissions = permissions;
 		this._commandTips = commandTips;
+		this._botOwnerOnly = botOwnerOnly;
 	}
 
 	async execute(commandArguments: ICommandArguments) {
@@ -83,7 +86,11 @@ export default class Command {
 		return this._commandTips;
 	}
 
-	get instance(): BatClient {
+	get botOwnerOnly(): boolean {
+		return this._botOwnerOnly;
+	}
+
+	get instance(): BatClient  {
 		return <BatClient>this._instance;
 	}
 

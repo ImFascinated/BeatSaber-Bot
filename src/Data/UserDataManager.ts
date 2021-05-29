@@ -79,4 +79,9 @@ export default class UserDataManager extends Manager {
 	private userDataExists(id: string): boolean {
 		return this._users.has(id);
 	}
+
+
+	get users(): Map<String, UserData> {
+		return this._users;
+	}
 }

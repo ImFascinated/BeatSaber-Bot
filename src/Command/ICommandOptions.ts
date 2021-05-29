@@ -8,4 +8,5 @@ export default interface iCommandOptions {
 	aliases?: string[];
 	permissions?: PermissionString[];
 	commandTips?: string[];
+	botOwnerOnly?: boolean
 }

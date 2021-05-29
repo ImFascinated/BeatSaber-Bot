@@ -584,7 +584,7 @@ export default class BeatSaberManager extends Manager {
                 case "PP": {
                     context.fillStyle = "#fff";
                     context.textAlign = 'right';
-                    context.fillText(numeral(song.pp.toFixed(2)).format('0,0') + " PP (" + numeral((song.pp * song.weight).toFixed(2)).format('0,0') + "PP)", canvas.width - x, rightY, 1000);
+                    context.fillText(song.pp.toFixed(2) + " PP (" + (song.pp * song.weight).toFixed(2) + "PP)", canvas.width - x, rightY, 1000);
                     rightY += 55;
                     break;
                 }

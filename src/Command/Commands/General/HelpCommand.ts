@@ -23,6 +23,7 @@ module.exports = class HelpCommand extends Command {
 
         const categories = [
             'BeatSaber',
+            'General',
             'Info',
             'Settings'
         ]
@@ -49,6 +50,8 @@ module.exports = class HelpCommand extends Command {
             .setAuthor("Help")
             .setColor(`#${guildSettings.embedColor}`)
             .setDescription(description)
+            .setFooter(super.instance.embedFooter)
+            .setTimestamp()
         );
     }
 }

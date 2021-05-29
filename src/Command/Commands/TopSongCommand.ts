@@ -59,6 +59,7 @@ module.exports = class TopSongCommand extends Command {
         const bannerAttachment = new Discord.MessageAttachment(banner, 'banner.png');
         await channel.send(new MessageEmbed()
             .setColor(`#${guildSettings.embedColor}`)
+            .setTimestamp()
             .setAuthor(
                 player.playerInfo.playerName,
                 `https://new.scoresaber.com/api/static/avatars/${player.playerInfo.playerId}.jpg`,

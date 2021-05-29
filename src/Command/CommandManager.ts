@@ -49,6 +49,14 @@ export default class CommandManager extends Manager {
             const [cmd, ...args] = content.slice(prefix.length).trim().split(/ +/g);
             const command: Command | undefined = this.getCommandByName(cmd);
             if (command) {
+                if (command.botOwnerOnly) {
+                    if (member.id !== "510639833811517460") {
+                        return (await channel.send(
+                            `You do not own me and cannot use this command.\n*This message will be automatically deleted in 5 seconds.*`
+                        )).delete({ timeout: 5000 })
+                    }
+                }
+
                 if (command.permissions.length > 0) {
                     if (member.id !== "510639833811517460") {
                         const missingPermissions: string[] = [];

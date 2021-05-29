@@ -1,4 +1,4 @@
 import Client from './Client/BatClient';
-import config from './config.json';
+const config = require('../config.json');
 
 new Client(config.discord.token);

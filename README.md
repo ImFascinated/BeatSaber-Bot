@@ -8,23 +8,23 @@ I am working on the bot quite frequently and has many features!<br />
 If you have any suggestions or features you want to see, send me a dm on discord @ Fascinated#4735<br />
 # Commands List
 **BeatSaber**<br />
-• `?compare (player1) (player2)` - Compare two people together<br />
-• `?leaderboard` - Shows you the top 15 people in the global leaderboard<br />
-• `?link (scoresaber link)` - Link your scoresaber account to the bot<br />
-• `?recentsong [offset]` - Check out your most recent play<br />
-• `?recentsongs` - Check your 6 most recent plays<br />
-• `?topsong [offset]` - Check your best play<br />
-• `?topsongs` - Check out your 6 best plays<br />
-• `?unlink` - Unlink your scoresaber account<br />
+• `bs!compare (player1) (player2)` - Compare two people together<br />
+• `bs!leaderboard` - Shows you the top 15 people in the global leaderboard<br />
+• `bs!link (scoresaber link)` - Link your scoresaber account to the bot<br />
+• `bs!recentsong [offset]` - Check out your most recent play<br />
+• `bs!recentsongs` - Check your 6 most recent plays<br />
+• `bs!topsong [offset]` - Check your best play<br />
+• `bs!topsongs` - Check out your 6 best plays<br />
+• `bs!unlink` - Unlink your scoresaber account<br />
 
 **General**<br />
-• `?help` - Main entry point<br />
-• `?invite` - Sends the bot's invite<br />
+• `bs!help` - Main entry point<br />
+• `bs!invite` - Sends the bot's invite<br />
 
 **Info**<br />
-• `?ping` - Retrieves the response time of the bot<br />
-• `?statistics` - Statistics about the bot<br />
+• `bs!ping` - Retrieves the response time of the bot<br />
+• `bs!statistics` - Statistics about the bot<br />
 
 **Settings**<br />
-• `?embedcolor` - Set the guilds prefix<br />
-• `?prefix` - Set the guilds prefix<br />
+• `bs!embedcolor` - Set the guilds prefix<br />
+• `bs!prefix` - Set the guilds prefix<br />

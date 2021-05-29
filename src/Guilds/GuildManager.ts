@@ -86,4 +86,9 @@ export default class GuildManager extends Manager {
 	private guildExists(id: string): boolean {
 		return this._guilds.has(id);
 	}
+
+
+	get guilds(): Map<String, Guild> {
+		return this._guilds;
+	}
 }

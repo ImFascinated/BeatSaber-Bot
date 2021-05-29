@@ -37,8 +37,8 @@ module.exports = class TopSongCommand extends Command {
             return;
         }
         let song = topSongs[0];
-        if (args.length > 1) {
-            const offset = Number.parseInt(args[1]);
+        if (args.length >= 1) {
+            const offset = Number.parseInt(args[0]);
             if (isNaN(offset)) {
                 await channel.send("That is not a valid number qwq");
                 return;
@@ -55,7 +55,7 @@ module.exports = class TopSongCommand extends Command {
             console.log(`Failed to fetch map data for song hash ${song.songHash} (status=${response.statusCode})`);
         }
 
-        const banner: Buffer = await super.instance.beatSaberManager.createSongBanner(player, song);
+        const banner: Buffer = await super.instance.beatSaberManager.createSongBanner(song);
         const bannerAttachment = new Discord.MessageAttachment(banner, 'banner.png');
         await channel.send(new MessageEmbed()
             .setColor(`#${guildSettings.embedColor}`)

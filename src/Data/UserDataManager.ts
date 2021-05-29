@@ -3,6 +3,7 @@ import Manager from "../Utils/Manager";
 import BatClient from "../Client/BatClient";
 import {promisify} from 'util';
 import UserData from "./UserData";
+import {LastScore} from "./LastScore";
 const glob = promisify(require('glob'));
 
 export default class UserDataManager extends Manager {
@@ -37,16 +38,27 @@ export default class UserDataManager extends Manager {
 	async loadUserData(json: JSON): Promise<UserData> {
 		const id: string = json._id;
 		const scoreSaberId: string = json._scoreSaberId || "";
+		const lastScore: LastScore = json._lastScoreId || "";
+		const scoreFeedChannelId: string = json._scoreFeedChannelId || "";
 
 		return new UserData(
 			id,
-			scoreSaberId
+			scoreSaberId,
+			lastScore,
+			scoreFeedChannelId
 		);
 	}
 
 	async createUserData(id: string) {
 		if (!this.userDataExists(id)) {
-			const user: UserData = new UserData(id, "");
+			const user: UserData = new UserData(
+				id,
+				"",
+				{
+					scoreId: -1
+				},
+				""
+			);
 
 			fs.exists('./user-data', (exists: boolean) => {
 				if (!exists) {
@@ -79,7 +91,6 @@ export default class UserDataManager extends Manager {
 	private userDataExists(id: string): boolean {
 		return this._users.has(id);
 	}
-
 
 	get users(): Map<String, UserData> {
 		return this._users;

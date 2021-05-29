@@ -18,6 +18,8 @@ import ScoreReply from "./ScoreSaber/ScoreReply";
 import Manager from "../Utils/Manager";
 import {LeaderboardReply} from "./ScoreSaber/LeaderboardReply";
 import {PlayerInfo} from "./ScoreSaber/PlayerInfo";
+import Discord, {MessageEmbed} from "discord.js";
+import moment from "moment";
 
 const xOffset = 16;
 
@@ -39,7 +41,9 @@ export default class BeatSaberManager extends Manager {
         Canvas.registerFont(path.resolve(__dirname, '../../resources/fonts/RobotoCondensed-Bold.ttf'), {
             family: "Roboto",
             style: "bold"
-        })
+        });
+
+        this.setupScoreFeedHandler();
     }
 
     async createHeader(player: Player, type: string): Promise<Buffer> {
@@ -427,7 +431,7 @@ export default class BeatSaberManager extends Manager {
         return canvas.toBuffer();
     }
 
-    async createSongBanner(player: Player, song: Score): Promise<Buffer> {
+    async createSongBanner(song: Score): Promise<Buffer> {
         const canvas = Canvas.createCanvas(1200, 700);
         const context = canvas.getContext('2d');
 
@@ -674,5 +678,41 @@ export default class BeatSaberManager extends Manager {
             }
         }
         return "#fff";
+    }
+
+    private setupScoreFeedHandler() {
+        const client = super.instance.client;
+
+        setInterval(async () => {
+            const users = super.instance.userDataManager.users;
+
+            for (const usr of users) {
+                const user = usr[1];
+
+                if (user.scoreFeedChannelId == "")
+                    continue;
+                const channel: any = client.channels.cache.get(user.scoreFeedChannelId);
+                if (!channel)
+                    continue;
+
+                const latestScores = await super.instance.beatSaberManager.fetchScores(user.scoreSaberId, "RECENT", 0);
+                if (!latestScores)
+                    continue;
+                const latestScore = latestScores[0];
+
+                if (latestScore.scoreId == user.lastScore.scoreId)
+                    continue;
+
+                const banner: Buffer = await super.instance.beatSaberManager.createSongBanner(latestScore);
+                const bannerAttachment = new Discord.MessageAttachment(banner, 'banner.png');
+
+                await channel.send("!! SCORE SET BY <@" + user.id + "> !!")
+                await channel.send("`" + latestScore.songName + "`")
+                await channel.send(bannerAttachment);
+                user.lastScore = {
+                    scoreId: latestScore.scoreId
+                }
+            }
+        }, 30000);
     }
 }

@@ -26,7 +26,7 @@ module.exports = class LinkCommand extends Command {
         }
         let id = "";
         if (isNaN(Number.parseInt(args[0]))) {
-            const match = args[1].match(/\d+/g);
+            const match = args[0].match(/\d+/g);
             if (!match) {
                 await channel.send("That is not a valid scoresaber link.");
                 return;

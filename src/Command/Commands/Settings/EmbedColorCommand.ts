@@ -9,7 +9,7 @@ import ICommandArguments from "../../ICommandArguments";
 module.exports = class EmbedColorCommand extends Command {
     constructor() {
         super("embedcolor", {
-            description: "Set the guilds prefix",
+            description: "Set the embed color",
             category: "settings",
             aliases: [
                 "setprefix"

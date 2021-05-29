@@ -21,7 +21,7 @@ module.exports = class CompareCommand extends Command {
         const channel = commandArguments.channel;
         const message = commandArguments.message;
 
-        const target1 = message.mentions.members?.first(1)[0] || message.guild?.members.cache.get(args[1]);
+        const target1 = message.mentions.members?.first(1)[0] || message.guild?.members.cache.get(args[0]);
         if (target1 == null) {
             await channel.send("First target is unknown or invalid.");
             return;
@@ -38,7 +38,7 @@ module.exports = class CompareCommand extends Command {
             return;
         }
 
-        const target2 = message.mentions.members?.first(2)[1] || message.guild?.members.cache.get(args[2]);
+        const target2 = message.mentions.members?.first(2)[1] || message.guild?.members.cache.get(args[1]);
         if (target2 == null) {
             await channel.send("Second target is unknown or invalid.");
             return;

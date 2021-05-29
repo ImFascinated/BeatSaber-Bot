@@ -15,6 +15,7 @@ export default class Command {
 	private readonly _commandTips: string[];
 	private readonly _botOwnerOnly: boolean;
 
+	private _commandFile: any;
 	private _instance: BatClient | undefined;
 	private _guild: Guild | undefined;
 
@@ -52,6 +53,10 @@ export default class Command {
 		this._guild = guild;
 	}
 
+	public setCommandFile(file: any) {
+		this._commandFile = file;
+	}
+
 	public getRandomCommandTip(): string {
 		return "**TIP:** " + this._commandTips[Math.floor(Math.random() * this._commandTips.length)]
 			.replaceAll("%prefix%", this._guild!.prefix);
@@ -87,6 +92,10 @@ export default class Command {
 
 	get botOwnerOnly(): boolean {
 		return this._botOwnerOnly;
+	}
+
+	get commandFile(): any {
+		return this._commandFile;
 	}
 
 	get instance(): BatClient {

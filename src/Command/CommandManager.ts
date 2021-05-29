@@ -88,7 +88,7 @@ export default class CommandManager extends Manager {
                     channel.send(new MessageEmbed()
                         .setAuthor("Command Execution Error")
                         .setColor("RED")
-                        .setDescription("help, i have mc fallen qwq\n\n**Error:**\n" + err)
+                        .setDescription("help, i have mc fallen qwq <:winky:848021877942124584>\nIf this is an actual issue, please message Fascinated#4735\n\n**Error:**\n" + err)
                     );
                     
                     super.logger.log(`Command ${command.name} has failed to execute.`);

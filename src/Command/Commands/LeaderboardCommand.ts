@@ -24,7 +24,6 @@ module.exports = class LeaderboardCommand extends Command {
 
         const players: PlayerInfo[] = await instance.beatSaberManager.fetchLeaderboard();
 
-
         let description = ``;
         for (let i = 0; i < 15; i++) {
             const player = players[i];

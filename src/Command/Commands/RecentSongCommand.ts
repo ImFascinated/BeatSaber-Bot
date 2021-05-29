@@ -6,16 +6,18 @@
 import Command from "../Command";
 import ICommandArguments from "../ICommandArguments";
 import moment from "moment";
-import Discord, {MessageEmbed} from "discord.js";
+import Discord, {Channel, DMChannel, MessageEmbed, NewsChannel, TextChannel} from "discord.js";
 import {MapInfo} from "../../BeatSaber/BeatSaver/MapInfo";
 import {IRestResponse} from "typed-rest-client/restClient";
+import Guild from "../../Guilds/Guild";
+import UserData from "../../Data/UserData";
 
 module.exports = class RecentSongCommand extends Command {
     constructor() {
         super("recentsong", {
             category: "beatsaber",
             description: "Check out your most recent play",
-            usage: "[offset]"
+            usage: "[] [offset]"
         });
     }
 
@@ -24,38 +26,74 @@ module.exports = class RecentSongCommand extends Command {
         const channel = commandArguments.channel;
         const userData = commandArguments.userData;
         const guildSettings = commandArguments.guildSettings;
+        const message = commandArguments.message;
 
-        if (userData.scoreSaberId == "") {
-            await channel.send("You have not linked your scoresaber account.");
+        if (args.length <= 0) {
+            if (userData.scoreSaberId == "") {
+                await channel.send("You have not linked your scoresaber account.");
+                return;
+            }
+
+            await this.sendScoreMessage(userData, channel, guildSettings);
+            return;
+        } else if (args[0].length == 18) {
+            const target = message.mentions.members?.first() || message.guild?.members.cache.get(args[0]);
+            if (target == null) {
+                await channel.send("Unknown or invalid user.");
+                return;
+            }
+            const targetData = super.instance.userDataManager.getUserData(target.id);
+            if (targetData == null)
+                return;
+            if (targetData.scoreSaberId == "") {
+                await channel.send(`<@${target.id}> has not linked their scoresaber account.`);
+                return;
+            }
+
+            if (args.length == 1) {
+                await this.sendScoreMessage(targetData, channel, guildSettings);
+                return;
+            } else if (args.length == 2) {
+                await this.sendScoreMessage(targetData, channel, guildSettings, Number.parseInt(args[1]));
+                return;
+            }
+        } else {
+            if (userData.scoreSaberId == "") {
+                await channel.send("You have not linked your scoresaber account.");
+                return;
+            }
+
+            await this.sendScoreMessage(userData, channel, guildSettings, Number.parseInt(args[0]));
             return;
         }
+    }
 
-        const recentSongs = await super.instance.beatSaberManager.fetchScores(userData.scoreSaberId, "RECENT", 1);
-        const player = await super.instance.beatSaberManager.getPlayer(userData.scoreSaberId);
+    private async sendScoreMessage(user: UserData, channel: TextChannel | DMChannel | NewsChannel, guildSettings: Guild, offsetArg?: number) {
+        const recentSongs = await super.instance.beatSaberManager.fetchScores(user.scoreSaberId, "RECENT", 0);
+        const player = await super.instance.beatSaberManager.getPlayer(user.scoreSaberId);
         if (recentSongs == null || player == null) {
             await channel.send("Unable to fetch recent song...");
             return;
         }
         let song = recentSongs[0];
-        if (args.length >= 1) {
-            const offset = Number.parseInt(args[0]);
-            if (isNaN(offset)) {
+        if (offsetArg) {
+            if (isNaN(offsetArg)) {
                 await channel.send("That is not a valid number qwq");
                 return;
             }
-            if (offset < 0) {
+            if (offsetArg < 0) {
                 await channel.send("That is not a valid offset qwq");
                 return;
             }
-            song = recentSongs[offset-1];
+            song = recentSongs[offsetArg-1];
+        } else {
+            song = recentSongs[0];
         }
 
         const response: IRestResponse<MapInfo> = await super.instance.beatSaberManager.restClientBeatSaver.get<MapInfo>(`maps/by-hash/${song.songHash}`);
         if (response.result === null) {
             console.log(`Failed to fetch map data for song hash ${song.songHash} (status=${response.statusCode})`);
         }
-
-        console.log(song)
 
         const banner: Buffer = await super.instance.beatSaberManager.createSongBanner(song);
         const bannerAttachment = new Discord.MessageAttachment(banner, 'banner.png');

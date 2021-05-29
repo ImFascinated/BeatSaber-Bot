@@ -43,7 +43,8 @@ export default class BeatSaberManager extends Manager {
             style: "bold"
         });
 
-        this.setupScoreFeedHandler();
+        // Disabled for now
+        //this.setupScoreFeedHandler();
     }
 
     async createHeader(player: Player, type: string): Promise<Buffer> {

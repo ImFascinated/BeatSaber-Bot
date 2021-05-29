@@ -18,9 +18,9 @@ export default class CommandManager extends Manager {
     
     constructor(instance: BatClient) {
         super(instance);
-        
+
         this.loadCommands(instance, instance.client, `${__dirname}${path.sep}Commands`, false);
-        
+
         instance.client.on("message", async (message: Message) => {
             const { guild, member, author, content, channel } = message
             if (!guild || author.bot) return;
@@ -74,6 +74,7 @@ export default class CommandManager extends Manager {
                 }
                 command.setInstance(instance);
                 command.setGuild(guildData);
+
                 await command.execute({
                     args: args,
                     channel: channel,
@@ -90,9 +91,9 @@ export default class CommandManager extends Manager {
                         .setColor("RED")
                         .setDescription("help, i have mc fallen qwq <:winky:848021877942124584>\nIf this is an actual issue, please message Fascinated#4735\n\n**Error:**\n" + err)
                     );
-                    
+
                     super.logger.log(`Command ${command.name} has failed to execute.`);
-                    super.logger.log(err);
+                    super.logger.log(err.stack);
                 });
             }
         });

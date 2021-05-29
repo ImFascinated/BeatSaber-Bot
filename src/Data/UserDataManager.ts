@@ -38,7 +38,7 @@ export default class UserDataManager extends Manager {
 	async loadUserData(json: JSON): Promise<UserData> {
 		const id: string = json._id;
 		const scoreSaberId: string = json._scoreSaberId || "";
-		const lastScore: LastScore = json._lastScoreId || "";
+		const lastScore: LastScore = json._lastScore || { scoreId: -1 };
 		const scoreFeedChannelId: string = json._scoreFeedChannelId || "";
 
 		return new UserData(

@@ -21,24 +21,34 @@ module.exports = class HelpCommand extends Command {
         const guildSettings = commandArguments.guildSettings;
         const prefix = guildSettings.prefix;
 
+        const categories = [
+            'BeatSaber',
+            'Info',
+            'Settings'
+        ]
+
+        let description =
+            `
+            Welcome to the help page of Beat Saber Bot.
+            
+            () required [] optional
+            \n`
+        ;
+
+        categories.forEach(category => {
+            description += `**${category} Commands** \n`
+            this.instance!.commandManager.commands.forEach(cmd => {
+                if (cmd.category == category.toLowerCase()) {
+                    description += `${prefix}${cmd.name} ${cmd.usage == "" ? "" : cmd.usage + " "}- ${cmd.description}\n`
+                }
+            });
+            description += `\n`;
+        });
+
         await channel.send(new MessageEmbed()
-            .setAuthor("Beat Saber - Commands")
-            .setColor("YELLOW")
-            .setDescription(
-                `
-                ${prefix}link <scoresaber url> 
-                ${prefix}unlink 
-                ${prefix}topsongs 
-                ${prefix}recentsongs 
-                ${prefix}topsong (offset)
-                ${prefix}recentsong (offset)
-                ${prefix}compare (user1) (user2) 
-                
-                ${prefix}help
-                ${prefix}ping
-                ${prefix}prefix (new prefix)
-                `
-            )
+            .setAuthor("Help")
+            .setColor(`#${guildSettings.embedColor}`)
+            .setDescription(description)
         );
     }
 }

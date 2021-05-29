@@ -6,7 +6,8 @@ import {promisify} from 'util';
 const glob = promisify(require('glob'));
 
 const defaultGuild = {
-	prefix: "bs!"
+	prefix: "bs!",
+	embedColor: "08DCCF"
 }
 
 export default class GuildManager extends Manager {
@@ -41,16 +42,18 @@ export default class GuildManager extends Manager {
 	async loadGuild(json: JSON): Promise<Guild> {
 		const id: string = json._id;
 		const prefix: string = json._prefix || defaultGuild.prefix;
+		const embedColor: string = json._embedColor || defaultGuild.embedColor;
 
 		return new Guild(
 			id,
-			prefix
+			prefix,
+			embedColor
 		);
 	}
 
 	async createGuild(id: string) {
 		if (!this.guildExists(id)) {
-			const guild: Guild = new Guild(id, defaultGuild.prefix);
+			const guild: Guild = new Guild(id, defaultGuild.prefix, defaultGuild.embedColor);
 
 			fs.exists('./guilds', (exists: boolean) => {
 				if (!exists) {

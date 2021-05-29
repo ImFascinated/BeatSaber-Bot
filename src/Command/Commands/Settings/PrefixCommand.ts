@@ -33,9 +33,15 @@ module.exports = class PrefixCommand extends Command {
             return;
         }
 
-        const prefix = args[0];
-        if (prefix.length > 4) {
-            await channel.send(`Your prefix cannot be more than 3 characters long.\n${super.getRandomCommandTip()}`);
+        let prefix = args.join(" ");
+        if (prefix.includes(`\"`)) {
+            prefix = prefix.replaceAll(/["]/g, "");
+        } else {
+            prefix = prefix[0];
+        }
+
+        if (prefix.length > 10) {
+            await channel.send(`Your prefix cannot be more than 10 characters long.\n${super.getRandomCommandTip()}`);
             return;
         }
         if (prefix.length < 1) {

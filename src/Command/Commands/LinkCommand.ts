@@ -8,7 +8,11 @@ import ICommandArguments from "../ICommandArguments";
 
 module.exports = class LinkCommand extends Command {
     constructor() {
-        super("link", {});
+        super("link", {
+            category: "beatsaber",
+            description: "Link your scoresaber account to the bot",
+            usage: "(scoresaber link)"
+        });
     }
 
     async execute(commandArguments: ICommandArguments): Promise<void> {

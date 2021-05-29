@@ -9,7 +9,10 @@ import Discord from "discord.js";
 
 module.exports = class TopSongsCommand extends Command {
     constructor() {
-        super("topsongs", {});
+        super("topsongs", {
+            category: "beatsaber",
+            description: "Check out your 6 best plays"
+        });
     }
 
     async execute(commandArguments: ICommandArguments): Promise<void> {

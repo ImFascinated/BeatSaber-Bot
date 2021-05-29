@@ -29,7 +29,6 @@ export default class BeatSaberManager extends Manager {
     private readonly noImageFoundBuffer: Buffer;
 
     private readonly songCache: Map<String, Buffer> = new Map<String, Buffer>();
-    private readonly avatarCache: Map<String, Buffer> = new Map<String, Buffer>();
 
     constructor(instance: BatClient) {
         super(instance);
@@ -217,9 +216,6 @@ export default class BeatSaberManager extends Manager {
 
         context.font = `60px Roboto`;
         context.fillStyle = '#fff';
-
-        // context.textAlign = 'center';
-        // context.fillText("Comparison", canvas.width / 2, 66, 1000);
 
         context.font = `50px Roboto`;
         let name1 = target1.playerInfo.playerName;

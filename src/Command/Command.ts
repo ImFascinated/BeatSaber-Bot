@@ -9,12 +9,13 @@ export default class Command {
 	private readonly _name: string;
 	private readonly _description: string;
 	private readonly _category: string;
+	private readonly _usage: string;
 	private readonly _aliases: string[];
 	private readonly _permissions: PermissionString[];
 	private readonly _commandTips: string[];
 	
 	private _instance: BatClient | undefined;
-	private _guild: Guild | undefined; 
+	private _guild: Guild | undefined;
 
 	constructor(name: string, options: ICommandOptions) {
 		this._name = name;
@@ -22,12 +23,14 @@ export default class Command {
 		const {
 			description = "",
 			category = "",
+			usage = "",
 			aliases = [],
 			permissions = [],
 			commandTips = []
 		} = options
 		
 		this._description = description;
+		this._usage = usage;
 		this._category = category;
 		this._aliases = aliases;
 		this._permissions = permissions;
@@ -62,6 +65,10 @@ export default class Command {
 
 	get category(): string {
 		return this._category;
+	}
+
+	get usage(): string {
+		return this._usage;
 	}
 
 	get aliases(): string[] {

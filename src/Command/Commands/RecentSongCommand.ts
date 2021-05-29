@@ -7,18 +7,23 @@ import Command from "../Command";
 import ICommandArguments from "../ICommandArguments";
 import moment from "moment";
 import Discord, {MessageEmbed} from "discord.js";
-import {MapInfo} from "../../Beat Saber/BeatSaver/MapInfo";
+import {MapInfo} from "../../BeatSaber/BeatSaver/MapInfo";
 import {IRestResponse} from "typed-rest-client/restClient";
 
 module.exports = class RecentSongCommand extends Command {
     constructor() {
-        super("recentsong", {});
+        super("recentsong", {
+            category: "beatsaber",
+            description: "Check out your most recent play",
+            usage: "[offset]"
+        });
     }
 
     async execute(commandArguments: ICommandArguments): Promise<void> {
         const args = commandArguments.args;
         const channel = commandArguments.channel;
         const userData = commandArguments.userData;
+        const guildSettings = commandArguments.guildSettings;
 
         if (userData.scoreSaberId == "") {
             await channel.send("You have not linked your scoresaber account.");
@@ -53,6 +58,7 @@ module.exports = class RecentSongCommand extends Command {
         const banner: Buffer = await super.instance.beatSaberManager.createSongBanner(player, song);
         const bannerAttachment = new Discord.MessageAttachment(banner, 'banner.png');
         await channel.send(new MessageEmbed()
+            .setColor(`#${guildSettings.embedColor}`)
             .setAuthor(
                 player.playerInfo.playerName,
                 `https://new.scoresaber.com/api/static/avatars/${player.playerInfo.playerId}.jpg`,

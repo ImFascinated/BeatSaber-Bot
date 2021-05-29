@@ -8,7 +8,10 @@ import ICommandArguments from "../ICommandArguments";
 
 module.exports = class UnLinkCommand extends Command {
     constructor() {
-        super("unlink", {});
+        super("unlink", {
+            category: "beatsaber",
+            description: "Unlink your scoresaber account"
+        });
     }
 
     async execute(commandArguments: ICommandArguments): Promise<void> {

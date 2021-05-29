@@ -5,7 +5,7 @@ import CommandManager from "../Command/CommandManager";
 import Utils from "../Utils/Utils";
 import EventManager from "../Event/EventManager";
 import UserDataManager from "../Data/UserDataManager";
-import BeatSaberManager from "../Beat Saber/BeatSaberManager";
+import BeatSaberManager from "../BeatSaber/BeatSaberManager";
 
 export default class BatClient extends Client {
 
@@ -26,7 +26,7 @@ export default class BatClient extends Client {
 		this._token = token;
 		this._client = this;
 		this._utils = new Utils();
-		this._logger = new Logger("[Bat]:");
+		this._logger = new Logger("[BS Bot]:");
 		this._guildManager = new GuildManager(this);
 		this._userDataManager = new UserDataManager(this);
 		this._commandManager = new CommandManager(this);

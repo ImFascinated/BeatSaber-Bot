@@ -9,7 +9,11 @@ import Discord from "discord.js";
 
 module.exports = class CompareCommand extends Command {
     constructor() {
-        super("compare", {});
+        super("compare", {
+            category: "beatsaber",
+            description: "Compare two people together",
+            usage: "(player1) (player2)"
+        });
     }
 
     async execute(commandArguments: ICommandArguments): Promise<void> {

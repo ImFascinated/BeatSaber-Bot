@@ -12,7 +12,6 @@ export default class Manager {
 		this._instance.logger.log(message);
 	}
 
-
 	get instance(): BatClient {
 		return this._instance;
 	}

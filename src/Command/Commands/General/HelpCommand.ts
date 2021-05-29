@@ -37,10 +37,10 @@ module.exports = class HelpCommand extends Command {
         ;
 
         categories.forEach(category => {
-            description += `**${category} Commands** \n`
+            description += `**${category}** \n`
             this.instance!.commandManager.commands.forEach(cmd => {
                 if (cmd.category == category.toLowerCase()) {
-                    description += `${prefix}${cmd.name} ${cmd.usage == "" ? "" : cmd.usage + " "}- ${cmd.description}\n`
+                    description += `• \`${prefix}${cmd.name}${cmd.usage == "" ? "\`" : " " + cmd.usage + "\` "} - ${cmd.description}\n`
                 }
             });
             description += `\n`;

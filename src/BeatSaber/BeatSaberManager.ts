@@ -16,6 +16,8 @@ import {MapInfo} from "./BeatSaver/MapInfo";
 import Score from "./ScoreSaber/Score";
 import ScoreReply from "./ScoreSaber/ScoreReply";
 import Manager from "../Utils/Manager";
+import {LeaderboardReply} from "./ScoreSaber/LeaderboardReply";
+import {PlayerInfo} from "./ScoreSaber/PlayerInfo";
 
 const xOffset = 16;
 
@@ -620,6 +622,16 @@ export default class BeatSaberManager extends Manager {
         }
 
         return response.result.scores;
+    }
+
+    async fetchLeaderboard(): Promise<PlayerInfo[]>  {
+        const response: IRestResponse<LeaderboardReply> = await this.restClientScoreSaber.get<LeaderboardReply>(`players/1`);
+        if (response.result === null) {
+            console.log(`Failed to fetch top 50 scores (status=${response.statusCode})`);
+            return [];
+        }
+
+        return response.result.players;
     }
 
     private toDiff(diff: string, diffs: MapDifficulty) {

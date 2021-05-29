@@ -24,6 +24,7 @@ If you have any suggestions or features you want to see, send me a dm on discord
 **Info**<br />
 • `bs!ping` - Retrieves the response time of the bot<br />
 • `bs!statistics` - Statistics about the bot<br />
+• `bs!uptime` - Shows the bots uptime<br />
 
 **Settings**<br />
 • `bs!embedcolor` - Set the guilds prefix<br />

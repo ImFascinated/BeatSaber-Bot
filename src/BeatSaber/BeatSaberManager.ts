@@ -19,6 +19,7 @@ import Manager from "../Utils/Manager";
 import {LeaderboardReply} from "./ScoreSaber/LeaderboardReply";
 import {PlayerInfo} from "./ScoreSaber/PlayerInfo";
 import Discord from "discord.js";
+import {ChartJSNodeCanvas} from "chartjs-node-canvas";
 
 const xOffset = 16;
 
@@ -752,6 +753,61 @@ export default class BeatSaberManager extends Manager {
         return canvas.toBuffer();
     }
 
+    public async createRankHistory(player: Player) {
+        const canvas = Canvas.createCanvas(1400, 1000);
+        const context = canvas.getContext('2d');
+
+        const width = 700;
+        const height = 500;
+
+        const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
+
+        let history: number[] = [];
+        for (let string of player.playerInfo.history.split(",")) {
+            history.push(Number.parseInt(string));
+        }
+        history = history.reverse();
+        const data = {
+            labels: [
+                -50, -49, -48, -47, -46, -45, -44, -43, -42, -41, -40, -39, -38, -37, -36, -35, -34, -33, -32, -31, -30, -29, -28, -27, -26,
+                -25, -24, -23, -22, -21, -20, -19, -18, -17, -16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0
+            ],
+            datasets: [
+                {
+                    label: `${player.playerInfo.playerName}'s Rank History`,
+                    data: history,
+                    borderColor: "rgb(255, 99, 132)",
+                    //backgroundColor: "RED",
+                }
+            ]
+        };
+
+        const configuration = {
+            type: 'line',
+            data: data,
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: `${player.playerInfo.playerName}'s Rank History`
+                    }
+                }
+            }
+        };
+
+        const background = await Canvas.loadImage(this.backgroundBuffer)
+        context.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+        const chart = await chartJSNodeCanvas.renderToBuffer(configuration);
+        const chartImage = await Canvas.loadImage(chart);
+        context.drawImage(chartImage, 0, 0, canvas.width, canvas.height);
+
+        return canvas.toBuffer();
+    }
+
     async getPlayer(id: string): Promise<Player | null> {
         const response: IRestResponse<Player> = await this.restClientScoreSaber.get<Player>(`player/${id}/full`);
         if (response.result === null) {
@@ -824,7 +880,7 @@ export default class BeatSaberManager extends Manager {
         return "#fff";
     }
 
-    private setupScoreFeedHandler() {
+    public async setupScoreFeedHandler() {
         const client = super.instance.client;
 
         setInterval(async () => {

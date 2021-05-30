@@ -1,9 +1,11 @@
 import Guild from "./Guild";
 import fs from 'fs';
 import Manager from "../Utils/Manager";
-import BatClient from "../Client/BatClient";
+import BSBotClient from "../Client/BSBotClient";
 import {promisify} from 'util';
 const glob = promisify(require('glob'));
+
+import GuildSchema from "./GuildSchema";
 
 const defaultGuild = {
 	prefix: "bs!",
@@ -14,69 +16,80 @@ export default class GuildManager extends Manager {
 
 	private _guilds: Map<String, Guild> = new Map<String, Guild>();
 	
-	constructor(client: BatClient) {
+	constructor(client: BSBotClient) {
 		super(client);
 		this.loadGuilds();
 		this.setupSaveHandler();
 	}
 
-	private loadGuilds() {
-		return glob(`./guilds/*.json`).then(async (guilds: any[]) => {
-			for (const g of guilds) {
-				const guildFile = fs.readFileSync(g);
-				if (!guildFile) {
-					super.logger.warn(`Failed to load guild ${g}.`)
-					continue;
-				}
-				const guild: Guild = await this.loadGuild(JSON.parse(guildFile.toString()));
-				this._guilds.set(guild.id, guild);
-			}
-			if (this._guilds.size > 0) {
-				super.logger.log(`Loaded ${this._guilds.size} guild${this._guilds.size > 1 ? 's' : ''}.`)
-			} else {
-				super.logger.log("No guilds have been loaded.");
-			}
-		});
+	private async loadGuilds() {
+		const guilds = await GuildSchema.find().exec();
+		if (!guilds) {
+			super.logger.log("No guilds to load!");
+			return;
+		}
+
+		for (const guild of guilds) {
+			const id = guild._id;
+			const prefix = guild.prefix;
+			const embedColor = guild.embedColor;
+
+			this._guilds.set(
+				id,
+				new Guild(
+					id,
+					prefix,
+					embedColor
+				)
+			);
+		}
+		super.logger.log(`Loaded ${guilds.length} guilds.`);
 	}
 	
-	async loadGuild(json: JSON): Promise<Guild> {
-		const id: string = json._id;
-		const prefix: string = json._prefix || defaultGuild.prefix;
-		const embedColor: string = json._embedColor || defaultGuild.embedColor;
+	public async loadGuild(id: string): Promise<Guild> {
+		const guildData = await GuildSchema.find({ _id: id }).exec();
 
-		return new Guild(
+		const prefix = guildData.prefix;
+		const embedColor = guildData.embedColor;
+
+		const guild = new Guild(
 			id,
 			prefix,
 			embedColor
 		);
+		this._guilds.set(id, guild);
+		return guild;
 	}
 
 	async createGuild(id: string) {
 		if (!this.guildExists(id)) {
-			const guild: Guild = new Guild(id, defaultGuild.prefix, defaultGuild.embedColor);
-
-			fs.exists('./guilds', (exists: boolean) => {
-				if (!exists) {
-					fs.mkdir(`./guilds`, (err) => { if (err) super.logger.log("Failed to create guilds directory") });
+			await GuildSchema.create(
+				{
+					_id: id,
+					prefix: defaultGuild.prefix,
+					embedColor: defaultGuild.embedColor,
 				}
-			});
-			fs.writeFile(`./guilds/${id}.json`, JSON.stringify(guild), (err) => {
-				if (err) {
-					super.logger.log("Failed to create guild: " + id);
-				}
-			});
-
-			super.logger.log(`Created guild ${id}.`);
+			);
+			const guild = new Guild(
+				id,
+				defaultGuild.prefix,
+				defaultGuild.embedColor
+			);
 			this._guilds.set(id, guild);
 		}
 	}
 	
 	private setupSaveHandler() {
-		setInterval(() => {
-			for (const guild of this._guilds.values()) {
-				guild.save();
+		setInterval(async () => {
+			for (let guild of this._guilds) {
+				const guildSettings = guild[1];
+				const guildData = await GuildSchema.findOne({ _id: guildSettings.id }).exec();
+
+				guildData.prefix = guildSettings.prefix;
+				guildData.embedColor = guildSettings.embedColor;
+				guildData.save();
 			}
-		}, 60 * 60 * 5); // 5 Mins
+		}, 60 * 60 * 5 * 1000); // 5 Mins
 	}
 	
 	public getGuild(id: String): Guild | undefined {
@@ -86,7 +99,6 @@ export default class GuildManager extends Manager {
 	private guildExists(id: string): boolean {
 		return this._guilds.has(id);
 	}
-
 
 	get guilds(): Map<String, Guild> {
 		return this._guilds;

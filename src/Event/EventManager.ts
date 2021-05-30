@@ -2,7 +2,7 @@
  * Project: BatBot-NEW
  * Created by Fascinated#4735 on 26/05/2021
  */
-import BatClient from "../Client/BatClient";
+import BSBotClient from "../Client/BSBotClient";
 import {promisify} from 'util';
 import path from "path";
 import {Client} from "discord.js";
@@ -13,12 +13,12 @@ const glob = promisify(require('glob'));
 export default class EventManager extends Manager {
     private _events: Map<String, Event> = new Map();
 
-    constructor(instance: BatClient) {
+    constructor(instance: BSBotClient) {
         super(instance);
         this.init(instance, instance.client);
     }
 
-    private init(instance: BatClient, client: Client, silentLoad?: boolean) {
+    private init(instance: BSBotClient, client: Client, silentLoad?: boolean) {
         return glob(`${__dirname}\\Events\\**\\*.js`).then((events: any[]) => {
             for (const eventFile of events) {
                 delete require.cache[eventFile];
@@ -38,7 +38,7 @@ export default class EventManager extends Manager {
         });
     }
 
-    public registerEvent(instance: BatClient, client: any, event: Event, name: string) {
+    public registerEvent(instance: BSBotClient, client: any, event: Event, name: string) {
         if (!event.event) {
             throw new Error(`Event ${name} does not have an event type, therefore it cannot run.`);
         }

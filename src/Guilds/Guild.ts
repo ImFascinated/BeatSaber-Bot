@@ -16,14 +16,6 @@ export default class Guild {
 		this._embedColor = embedColor;
 	}
 
-	public save() {
-		fs.writeFile(`./guilds/${this._id}.json`, JSON.stringify(this), (err) => {
-			if (err) {
-				console.warn("Failed to save guild: " + this._id);
-			}
-		});
-	}
-
 	get id() {
 		return this._id;
 	}

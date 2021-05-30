@@ -9,7 +9,7 @@ import Discord, {DMChannel, MessageEmbed, NewsChannel, TextChannel} from "discor
 import moment from "moment";
 import {MapInfo} from "../../BeatSaber/BeatSaver/MapInfo";
 import {IRestResponse} from "typed-rest-client/restClient";
-import UserData from "../../Data/UserData";
+import UserData from "../../UserData/UserData";
 import Guild from "../../Guilds/Guild";
 
 module.exports = class TopSongCommand extends Command {

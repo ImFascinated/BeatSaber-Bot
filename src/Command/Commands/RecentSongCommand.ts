@@ -10,7 +10,7 @@ import Discord, {Channel, DMChannel, MessageEmbed, NewsChannel, TextChannel} fro
 import {MapInfo} from "../../BeatSaber/BeatSaver/MapInfo";
 import {IRestResponse} from "typed-rest-client/restClient";
 import Guild from "../../Guilds/Guild";
-import UserData from "../../Data/UserData";
+import UserData from "../../UserData/UserData";
 
 module.exports = class RecentSongCommand extends Command {
     constructor() {

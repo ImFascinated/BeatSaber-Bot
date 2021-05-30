@@ -4,7 +4,7 @@
  */
 
 import Event from "../Event";
-import BatClient from "../../Client/BatClient";
+import BSBotClient from "../../Client/BSBotClient";
 
 module.exports = class ReadyEvent extends Event {
     constructor() {
@@ -13,7 +13,7 @@ module.exports = class ReadyEvent extends Event {
         });
     }
 
-    async execute(instance: BatClient) {
+    async execute(instance: BSBotClient) {
         instance.logger.log("Ready!");
         
         await instance.client.user!.setActivity({name: "bs!help | v" + instance.version, type: "PLAYING"})

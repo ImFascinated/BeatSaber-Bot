@@ -3,7 +3,7 @@
  * Created by Fascinated#4735 on 26/05/2021
  */
 import IEventOptions from "./IEventOptions";
-import BatClient from "../Client/BatClient";
+import BSBotClient from "../Client/BSBotClient";
 
 export default class Event {
     private readonly _event: string = '';
@@ -19,7 +19,7 @@ export default class Event {
         this._type = type;
     }
 
-    public execute(instance: BatClient, ...args: any) {
+    public execute(instance: BSBotClient, ...args: any) {
         throw new Error(`The event ${this._event} is missing the execute method.`);
     }
 

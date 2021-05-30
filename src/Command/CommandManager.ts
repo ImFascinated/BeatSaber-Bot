@@ -2,7 +2,7 @@
  * Project: BatBot-NEW
  * Created by Fascinated#4735 on 25/05/2021
  */
-import BatClient from "../Client/BatClient";
+import BSBotClient from "../Client/BSBotClient";
 import Manager from "../Utils/Manager";
 import Command from "./Command";
 import path from "path";
@@ -10,13 +10,13 @@ import {promisify} from 'util';
 const glob = promisify(require('glob'));
 import {Client, Message, MessageEmbed} from "discord.js";
 import Guild from "../Guilds/Guild";
-import UserData from "../Data/UserData";
+import UserData from "../UserData/UserData";
 
 export default class CommandManager extends Manager {
 
     private _commands: Map<String, Command> = new Map();
     
-    constructor(instance: BatClient) {
+    constructor(instance: BSBotClient) {
         super(instance);
 
         this.loadCommands(instance, instance.client, `${__dirname}${path.sep}Commands`, false);
@@ -26,17 +26,15 @@ export default class CommandManager extends Manager {
             if (!guild || author.bot) return;
             if (!member) return;
 
-            await instance.guildManager.createGuild(guild.id);
             let guildData: Guild | undefined = instance.guildManager.getGuild(guild.id);
             if (guildData === undefined) {
                 await instance.guildManager.createGuild(guild.id);
                 guildData = instance.guildManager.getGuild(guild.id);
             }
 
-            await instance.userDataManager.createUserData(author.id);
             let userData: UserData | undefined = instance.userDataManager.getUserData(author.id);
             if (userData === undefined) {
-                await instance.guildManager.createGuild(author.id);
+                await instance.userDataManager.createUserData(author.id);
                 userData = instance.userDataManager.getUserData(author.id);
             }
 
@@ -99,7 +97,7 @@ export default class CommandManager extends Manager {
         });
     }
 
-    public async loadCommands(instance: BatClient, client: Client, directory: string | undefined, silentLoad?: boolean, reload?: boolean): Promise<{ name: string; error: any; }[]> {
+    public async loadCommands(instance: BSBotClient, client: Client, directory: string | undefined, silentLoad?: boolean, reload?: boolean): Promise<{ name: string; error: any; }[]> {
         if (directory === undefined) return [];
 
         let notLoadedCommands: { name: string; error: any; }[] = [];
@@ -165,7 +163,7 @@ export default class CommandManager extends Manager {
         this._commands.set(name, command);
     }
 
-    public async reloadCommands(instance: BatClient): Promise<{ name: string; error: any; }[]> {
+    public async reloadCommands(instance: BSBotClient): Promise<{ name: string; error: any; }[]> {
         for (let command of this._commands) {
             delete require.cache[require.resolve(command[1].commandFile)];
         }

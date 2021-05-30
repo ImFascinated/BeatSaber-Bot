@@ -9,9 +9,9 @@ import {
     NewsChannel,
     TextChannel
 } from "discord.js";
-import BatClient from "../Client/BatClient";
+import BatClient from "../Client/BSBotClient";
 import Guild from "../Guilds/Guild";
-import UserData from "../Data/UserData";
+import UserData from "../UserData/UserData";
 
 export default interface ICommandArguments {
     channel: TextChannel | DMChannel | NewsChannel;

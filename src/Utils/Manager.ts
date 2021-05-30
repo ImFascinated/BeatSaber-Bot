@@ -1,10 +1,10 @@
-import BatClient from "../Client/BatClient";
+import BSBotClient from "../Client/BSBotClient";
 
 export default class Manager {
 
-	private _instance: BatClient;
+	private readonly _instance: BSBotClient;
 	
-	constructor(instance: BatClient) {
+	constructor(instance: BSBotClient) {
 		this._instance = instance;
 	}
 	
@@ -12,7 +12,7 @@ export default class Manager {
 		this._instance.logger.log(message);
 	}
 
-	get instance(): BatClient {
+	get instance(): BSBotClient {
 		return this._instance;
 	}
 

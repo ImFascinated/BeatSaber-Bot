@@ -3,7 +3,7 @@
  * Created by Fascinated#4735 on 28/05/2021
  */
 import {MapDifficulty} from "./BeatSaver/MapDifficulty";
-import BatClient from "../Client/BatClient";
+import BSBotClient from "../Client/BSBotClient";
 import {IRestResponse, RestClient} from "typed-rest-client/restClient";
 import fs from "fs";
 import path from "path";
@@ -20,6 +20,9 @@ import {LeaderboardReply} from "./ScoreSaber/LeaderboardReply";
 import {PlayerInfo} from "./ScoreSaber/PlayerInfo";
 import Discord from "discord.js";
 import {ChartJSNodeCanvas} from "chartjs-node-canvas";
+import * as util from "util";
+
+const readFile = util.promisify(fs.readFile);
 
 const xOffset = 16;
 
@@ -33,9 +36,7 @@ export default class BeatSaberManager extends Manager {
     private readonly noImageFoundBuffer: Buffer;
     private readonly playerStatsBackgroundBuffer: Buffer;
 
-    private readonly songCache: Map<String, Buffer> = new Map<String, Buffer>();
-
-    constructor(instance: BatClient) {
+    constructor(instance: BSBotClient) {
         super(instance);
         this.backgroundBuffer = fs.readFileSync(path.resolve(__dirname, '../../resources/images/HeaderBackground.png'));
         this.noImageFoundBuffer = fs.readFileSync(path.resolve(__dirname, '../../resources/images/NoImageFound.jpg'));
@@ -274,8 +275,10 @@ export default class BeatSaberManager extends Manager {
             let textOffset = 170;
 
             // Song Art
-            if (this.hasCachedImage(song.songHash)) {
-                const artImage = await Canvas.loadImage(this.getCachedImage(song.songHash)!);
+            const isSavedLocally = this.isSongArtSaved(song.songHash);
+            console.log("isSavedLocally=" + isSavedLocally);
+            if (isSavedLocally) {
+                const artImage = await Canvas.loadImage(await this.getSongArt(song.songHash));
 
                 context.drawImage(artImage, 15, y + 10, 160, 160);
             } else {
@@ -293,7 +296,7 @@ export default class BeatSaberManager extends Manager {
                         const artImage = await Canvas.loadImage(Buffer.from(res.data, "utf-8"));
                         context.drawImage(artImage, 15, y + 10, 160, 160);
 
-                        this.cacheImage(song.songHash, Buffer.from(res.data, "utf-8"));
+                        this.saveSongArt(song.songHash, Buffer.from(res.data, "utf-8"));
                     });
                 });
             }
@@ -766,18 +769,18 @@ export default class BeatSaberManager extends Manager {
         for (let string of player.playerInfo.history.split(",")) {
             history.push(Number.parseInt(string));
         }
-        history = history.reverse();
+        //history = history.reverse();
         const data = {
             labels: [
-                -50, -49, -48, -47, -46, -45, -44, -43, -42, -41, -40, -39, -38, -37, -36, -35, -34, -33, -32, -31, -30, -29, -28, -27, -26,
+                -48, -47, -46, -45, -44, -43, -42, -41, -40, -39, -38, -37, -36, -35, -34, -33, -32, -31, -30, -29, -28, -27, -26,
                 -25, -24, -23, -22, -21, -20, -19, -18, -17, -16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0
             ],
             datasets: [
                 {
                     label: `${player.playerInfo.playerName}'s Rank History`,
                     data: history,
-                    borderColor: "rgb(255, 99, 132)",
-                    //backgroundColor: "RED",
+                    fill: false,
+                    borderColor: "rgb(255, 99, 132)"
                 }
             ]
         };
@@ -786,14 +789,12 @@ export default class BeatSaberManager extends Manager {
             type: 'line',
             data: data,
             options: {
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: `${player.playerInfo.playerName}'s Rank History`
-                    }
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            reverse: true
+                        }
+                    }]
                 }
             }
         };
@@ -939,16 +940,23 @@ export default class BeatSaberManager extends Manager {
 
     }
 
-    private cacheImage(songHash: string, buffer: Buffer) {
-        this.songCache.set(songHash, buffer);
-        super.log("Cached image: " + songHash);
+    private saveSongArt(songHash: string, buffer: Buffer) {
+        let error = false;
+        fs.writeFile(path.resolve(__dirname, `../../resources/images/song-art/${songHash}.png`), buffer, (err) => {
+            if (err) {
+                error = true;
+                return;
+            }
+            super.log("Saved image locally: " + songHash);
+        });
+        return error;
     }
 
-    private getCachedImage(songHash: string) {
-        return this.songCache.get(songHash);
+    private getSongArt(songHash: string) {
+        return readFile(path.resolve(__dirname, `../../resources/images/song-art/${songHash}.png`));
     }
 
-    private hasCachedImage(songHash: string) {
-        return this.songCache.has(songHash);
+    private isSongArtSaved(songHash: string) {
+        return this.getSongArt(songHash) != null;
     }
 }

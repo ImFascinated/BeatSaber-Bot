@@ -1,5 +1,8 @@
 {
 	"discord": {
 		"token": ""
-	}
+	},
+    "mongo": {
+        "connectionString": ""
+    }
 }

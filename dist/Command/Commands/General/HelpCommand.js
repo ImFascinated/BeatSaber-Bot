@@ -28,8 +28,7 @@ module.exports = class HelpCommand extends Command_1.default {
         ];
         let description = `
             Welcome to the help page of Beat Saber Bot.
-            
-            () required [] optional
+            \`() required [] optional\`
             \n`;
         categories.forEach(category => {
             description += `**${category}** \n`;

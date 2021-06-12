@@ -2,6 +2,7 @@
 ./guilds
 ./user-data
 ./node_modules
+./resources
 yarn.lock
 yarn-error.log
 tsconfig.json

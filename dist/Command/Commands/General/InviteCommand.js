@@ -8,15 +8,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Command_1 = __importDefault(require("../../Command"));
+const discord_js_1 = require("discord.js");
 module.exports = class InviteCommand extends Command_1.default {
     constructor() {
         super("invite", {
-            description: "Sends the bot's invite",
+            description: "Sends the bots invite",
             category: "general"
         });
     }
     async execute(commandArguments) {
         const channel = commandArguments.channel;
-        await channel.send("Invite: https://discord.com/oauth2/authorize?client_id=847958793468117032&permissions=8&scope=bot");
+        const guildSettings = commandArguments.guildSettings;
+        await channel.send(new discord_js_1.MessageEmbed()
+            .setColor(`#${guildSettings.embedColor}`)
+            .setFooter(super.instance.embedFooter)
+            .setAuthor("Beat Saber Bot Invite")
+            .setDescription("[BS Bot Invite](https://discord.com/oauth2/authorize?client_id=847958793468117032&permissions=8&scope=bot)"));
     }
 };

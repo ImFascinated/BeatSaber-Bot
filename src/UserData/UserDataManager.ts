@@ -84,16 +84,21 @@ export default class UserDataManager extends Manager {
 	
 	private setupSaveHandler() {
 		setInterval(async () => {
-			for (let userr of this._users) {
-				const userData = userr[1];
-				const user = await UserDataSchema.findOne({ _id: userData.id }).exec();
+			await this.saveData();
+		}, 300000); // 5 Mins
+	}
 
-				user.scoreSaberId = userData.scoreSaberId;
-				user.lastScore = userData.lastScore;
-				user.scoreFeedChannelId = userData.scoreFeedChannelId;
-				user.save();
-			}
-		}, 60 * 60 * 5 * 1000); // 5 Mins
+	public async saveData() {
+		for (let userr of this._users) {
+			const userData = userr[1];
+			const user = await UserDataSchema.findOne({ _id: userData.id }).exec();
+
+			user.scoreSaberId = userData.scoreSaberId;
+			user.lastScore = userData.lastScore;
+			user.scoreFeedChannelId = userData.scoreFeedChannelId;
+			user.save();
+		}
+		super.log("Saved user data!")
 	}
 	
 	public getUserData(id: String): UserData | undefined {

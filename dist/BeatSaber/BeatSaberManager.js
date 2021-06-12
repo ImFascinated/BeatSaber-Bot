@@ -227,8 +227,7 @@ class BeatSaberManager extends Manager_1.default {
             let textY = y + 45;
             let textOffset = 170;
             // Song Art
-            const isSavedLocally = this.isSongArtSaved(song.songHash);
-            console.log("isSavedLocally=" + isSavedLocally);
+            const isSavedLocally = await this.isSongArtSaved(song.songHash);
             if (isSavedLocally) {
                 const artImage = await canvas_1.default.loadImage(await this.getSongArt(song.songHash));
                 context.drawImage(artImage, 15, y + 10, 160, 160);
@@ -813,8 +812,16 @@ class BeatSaberManager extends Manager_1.default {
     getSongArt(songHash) {
         return readFile(path_1.default.resolve(__dirname, `../../resources/images/song-art/${songHash}.png`));
     }
-    isSongArtSaved(songHash) {
-        return this.getSongArt(songHash) != null;
+    async isSongArtSaved(songHash) {
+        let exists = false;
+        try {
+            await this.getSongArt(songHash);
+            exists = true;
+        }
+        catch (e) {
+            exists = false;
+        }
+        return exists;
     }
 }
 exports.default = BeatSaberManager;

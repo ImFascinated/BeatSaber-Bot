@@ -4,7 +4,7 @@
  */
 import {MapDifficulty} from "./BeatSaver/MapDifficulty";
 import BSBotClient from "../Client/BSBotClient";
-import {IRestResponse, RestClient} from "typed-rest-client/restClient";
+import {IRestResponse, RestClient} from "typed-rest-client";
 import fs from "fs";
 import path from "path";
 import Canvas from "canvas";
@@ -275,8 +275,7 @@ export default class BeatSaberManager extends Manager {
             let textOffset = 170;
 
             // Song Art
-            const isSavedLocally = this.isSongArtSaved(song.songHash);
-            console.log("isSavedLocally=" + isSavedLocally);
+            const isSavedLocally = await this.isSongArtSaved(song.songHash);
             if (isSavedLocally) {
                 const artImage = await Canvas.loadImage(await this.getSongArt(song.songHash));
 
@@ -841,19 +840,19 @@ export default class BeatSaberManager extends Manager {
 
     private toDiff(diff: string, diffs: MapDifficulty) {
         switch (diff) {
-            case "Easy": {
+            case "EASY": {
                 return diffs.difficulties.easy;
             }
-            case "Normal": {
+            case "NORMAL": {
                 return diffs.difficulties.normal;
             }
-            case "Hard": {
+            case "HARD": {
                 return diffs.difficulties.hard;
             }
-            case "Expert": {
+            case "EXPERT": {
                 return diffs.difficulties.expert;
             }
-            case "Expert Plus": {
+            case "EXPERT+": {
                 return diffs.difficulties.expertPlus;
             }
         }
@@ -956,7 +955,14 @@ export default class BeatSaberManager extends Manager {
         return readFile(path.resolve(__dirname, `../../resources/images/song-art/${songHash}.png`));
     }
 
-    private isSongArtSaved(songHash: string) {
-        return this.getSongArt(songHash) != null;
+    private async isSongArtSaved(songHash: string) {
+        let exists: boolean;
+        try {
+            await this.getSongArt(songHash);
+            exists = true;
+        } catch (e) {
+            exists = false;
+        }
+        return exists;
     }
 }

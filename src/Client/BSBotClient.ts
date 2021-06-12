@@ -13,7 +13,7 @@ import Events from "../Enums/Events";
 export default class BatClient extends Client {
 
 	private readonly _token: string = "";
-	private readonly _version: string = "0.6.1";
+	private readonly _version: string = "0.7.1";
 	private readonly _embedFooter: string = "Created by Fascinated#4735 v" + this._version;
 
 	private readonly _client: Client;
@@ -27,9 +27,9 @@ export default class BatClient extends Client {
 
 	private _mongoConnection: Connection | null = null;
 
-	constructor(token: string, mongoUri: string) {
+	constructor(config: JSON) {
 		super();
-		this._token = token;
+		this._token = config.discord.token;
 		this._client = this;
 		this._utils = new Utils();
 		this._logger = new Logger("[BS Bot]:");
@@ -40,15 +40,15 @@ export default class BatClient extends Client {
 		this._beatSaberManager = new BeatSaberManager(this);
 
 		setTimeout(async () => {
-			if (mongoUri) {
-				await mongo(mongoUri, this, {});
+			if (config.mongo.connectionString) {
+				await mongo(config.mongo.connectionString, this, {});
 
 				this._mongoConnection = getMongoConnection();
 			} else {
 				this._logger.warn("No MongoDB connection URI provided.");
 				this.emit(Events.DATABASE_CONNECTED, null, "");
 			}
-		}, 500);
+		}, 0);
 
 		this.load();
 	}

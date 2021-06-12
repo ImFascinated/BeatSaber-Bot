@@ -2,7 +2,7 @@ import { PermissionString } from "discord.js";
 import ICommandOptions from "./ICommandOptions";
 import ICommandArguments from "./ICommandArguments";
 import Guild from "../Guilds/Guild";
-import BatClient from "../Client/BatClient";
+import BSBotClient from "../Client/BSBotClient";
 
 export default class Command {
 
@@ -16,7 +16,7 @@ export default class Command {
 	private readonly _botOwnerOnly: boolean;
 
 	private _commandFile: any;
-	private _instance: BatClient | undefined;
+	private _instance: BSBotClient | undefined;
 	private _guild: Guild | undefined;
 
 	constructor(name: string, options: ICommandOptions) {
@@ -45,7 +45,7 @@ export default class Command {
 		throw new Error(`Command ${this._name} does not provide a execute method.`);
 	}
 	
-	public setInstance(instance: BatClient) {
+	public setInstance(instance: BSBotClient) {
 		this._instance = instance;
 	}
 	
@@ -98,8 +98,8 @@ export default class Command {
 		return this._commandFile;
 	}
 
-	get instance(): BatClient {
-		return <BatClient>this._instance;
+	get instance(): BSBotClient {
+		return <BSBotClient>this._instance;
 	}
 
 	get guild(): Guild {

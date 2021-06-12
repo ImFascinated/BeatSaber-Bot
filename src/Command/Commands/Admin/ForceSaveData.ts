@@ -25,14 +25,9 @@ module.exports = class ForceSaveDataCommand extends Command {
         const instance = commandArguments.instance;
 
         const msg = await channel.send("Saving users...")
-        for (const userData of instance.userDataManager.users.values()) {
-            userData.save();
-        }
-        await msg.edit("Saved users!")
-
-        for (const guilds of instance.guildManager.guilds.values()) {
-            guilds.save();
-        }
-        await msg.edit("Saved users & guilds!")
+        await instance.userDataManager.saveData();
+        await msg.edit("Saved users!");
+        await instance.guildManager.saveData();
+        await msg.edit("Saved users & guilds!");
     }
 }

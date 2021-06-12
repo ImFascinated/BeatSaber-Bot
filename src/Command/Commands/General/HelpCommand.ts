@@ -31,8 +31,7 @@ module.exports = class HelpCommand extends Command {
         let description =
             `
             Welcome to the help page of Beat Saber Bot.
-            
-            () required [] optional
+            \`() required [] optional\`
             \n`
         ;
 

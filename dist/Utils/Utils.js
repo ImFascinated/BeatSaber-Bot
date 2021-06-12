@@ -9,6 +9,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = __importDefault(require("path"));
 class Utils {
+    constructor() {
+        this.convertBytes = function (bytes) {
+            const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+            if (bytes == 0) {
+                return "n/a";
+            }
+            const i = parseInt(String(Math.floor(Math.log(bytes) / Math.log(1024))));
+            if (i == 0) {
+                return bytes + " " + sizes[i];
+            }
+            return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i];
+        };
+    }
     isClass(obj) {
         const isCtorClass = obj.constructor && obj.constructor.toString().substring(0, 5) === 'class';
         if (obj.prototype === undefined) {
@@ -24,8 +37,7 @@ class Utils {
     }
     formatTime(milliseconds, minimal = false) {
         if (!milliseconds || isNaN(milliseconds) || milliseconds <= 0) {
-            return "00:00";
-            //throw new RangeError("Utils#formatTime(milliseconds: number) Milliseconds must be a number greater than 0");
+            throw new RangeError("Utils#formatTime(milliseconds: number) Milliseconds must be a number greater than 0");
         }
         const times = {
             years: 0,

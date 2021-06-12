@@ -22,8 +22,7 @@ export default class Utils {
 
     formatTime(milliseconds: number, minimal: boolean = false): string {
         if (!milliseconds || isNaN(milliseconds) || milliseconds <= 0) {
-            return "00:00";
-            //throw new RangeError("Utils#formatTime(milliseconds: number) Milliseconds must be a number greater than 0");
+            throw new RangeError("Utils#formatTime(milliseconds: number) Milliseconds must be a number greater than 0");
         }
 
         const times = {
@@ -90,6 +89,22 @@ export default class Utils {
         }
 
         return time;
+    }
+
+    public convertBytes = function(bytes: number) {
+        const sizes = ["Bytes", "KB", "MB", "GB", "TB"]
+
+        if (bytes == 0) {
+            return "n/a"
+        }
+
+        const i = parseInt(String(Math.floor(Math.log(bytes) / Math.log(1024))))
+
+        if (i == 0) {
+            return bytes + " " + sizes[i]
+        }
+
+        return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i]
     }
 
     async sleep(ms: number) {

@@ -7,10 +7,11 @@ import Manager from "../Utils/Manager";
 import Command from "./Command";
 import path from "path";
 import {promisify} from 'util';
-const glob = promisify(require('glob'));
 import {Client, Message, MessageEmbed} from "discord.js";
 import Guild from "../Guilds/Guild";
 import UserData from "../UserData/UserData";
+
+const glob = promisify(require('glob'));
 
 export default class CommandManager extends Manager {
 
@@ -91,57 +92,25 @@ export default class CommandManager extends Manager {
                     );
 
                     super.logger.log(`Command ${command.name} has failed to execute.`);
+                    super.logger.log(err);
                     super.logger.log(err.stack);
                 });
             }
         });
     }
 
-    public async loadCommands(instance: BSBotClient, client: Client, directory: string | undefined, silentLoad?: boolean, reload?: boolean): Promise<{ name: string; error: any; }[]> {
+    public async loadCommands(instance: BSBotClient, client: Client, directory: string | undefined, silentLoad?: boolean, reload?: boolean) {
         if (directory === undefined) return [];
 
-        let notLoadedCommands: { name: string; error: any; }[] = [];
-        return glob(`${directory}\\**\\*.js`).then(async (commands: any[]) => {
+        return glob(`${directory}${path.sep}**${path.sep}*.js`).then(async (commands: any[]) => {
             for (const commandFile of commands) {
-                const { name } = path.parse(commandFile);
-                try {
-                    delete require.cache[commandFile];
-                    let File = await require(commandFile);
-                    if (!instance.utils.isClass(File)) throw new TypeError(`BatFramework > Command ${name} doesn't export a class!`);
-                    const command = await new File(client, name.toLowerCase());
-                    if (!(await command instanceof Command)) throw new TypeError(`BatFramework > Command ${name} does not extend CommandBase!`);
-
-                    if (!command.name) {
-                        throw new Error(`BatFramework > Command ${name} doesn't have a name, and therefore cannot be used!`)
-                    }
-
-                    const missing = [];
-
-                    if (!command.description) {
-                        missing.push("Description");
-                    }
-
-                    if (!command.category) {
-                        missing.push("Category");
-                    }
-
-                    if (missing.length > 0) {
-                        super.logger.warn(`Command "${command.name}" is missing the following properties: ${missing.join(', ')}.`)
-                    }
-
-                    await command.setCommandFile(commandFile);
-                    this.registerCommand(command, command.name.toLowerCase());
-                } catch(e) {
-                    notLoadedCommands.push({ "name": name, "error": e });
-                }
+                await this.registerCommand(instance, client, commandFile).catch(() => super.logger.log("Failed to load cmd!"));
             }
             if (!silentLoad) {
                 if (this._commands.size > 0) {
                     super.logger.log(`${reload == true ? "Rel" : "L"}oaded ${this._commands.size} command${this._commands.size > 1 ? 's' : ''}.`);
                 }
             }
-
-            return notLoadedCommands;
         });
     }
 
@@ -159,18 +128,80 @@ export default class CommandManager extends Manager {
         return toReturn;
     }
 
-    public registerCommand(command: Command, name: string) {
-        this._commands.set(name, command);
+    public async registerCommand(instance: BSBotClient, client: Client, commandFile: string): Promise<boolean> {
+        return new Promise(async (resolve, reject) => {
+            const { name } = path.parse(commandFile);
+            try {
+                delete require.cache[commandFile];
+                let File = await require(commandFile);
+                if (!instance.utils.isClass(File)) {
+                    super.logger.warn(`BatFramework > Command ${name} doesn't export a class!`);
+                    reject(true);
+                    return;
+                }
+                const command = await new File(client, name.toLowerCase());
+                if (!(await command instanceof Command)) {
+                    super.logger.warn(`BatFramework > Command ${name} does not extend CommandBase!`);
+                    reject(true);
+                    return;
+                }
+
+                if (!command.name) {
+                    super.logger.warn(`BatFramework > Command ${name} doesn't have a name, and therefore cannot be used!`)
+                    reject(true);
+                    return;
+                }
+
+                const missing = [];
+
+                if (!command.description) {
+                    missing.push("Description");
+                }
+
+                if (!command.category) {
+                    missing.push("Category");
+                }
+
+                if (missing.length > 0) {
+                    super.logger.warn(`Command "${command.name}" is missing the following properties: ${missing.join(', ')}.`)
+                }
+
+                await command.setCommandFile(commandFile);
+                this._commands.set(name, command);
+                resolve(false);
+                return;
+            } catch(e) {
+                super.logger.warn(`Command ${name} failed to load!`);
+                super.logger.warn(`Stack Trace:`);
+                super.logger.warn(`${e}`);
+                reject(true);
+                return;
+            }
+        })
     }
 
-    public async reloadCommands(instance: BSBotClient): Promise<{ name: string; error: any; }[]> {
+    public async reloadCommands(instance: BSBotClient): Promise<boolean> {
         for (let command of this._commands) {
             delete require.cache[require.resolve(command[1].commandFile)];
         }
 
-        return this.loadCommands(instance, instance.client, `${__dirname}${path.sep}Commands`, false, true);
+        return await this.loadCommands(instance, instance.client, `${__dirname}${path.sep}Commands`, false, true);
     }
 
+    public async reloadCommand(instance: BSBotClient, client: Client, command: Command): Promise<boolean> {
+        return new Promise(async (reject, resolve) => {
+            delete require.cache[require.resolve(command.commandFile)];
+            const {name} = path.parse(command.commandFile);
+            this._commands.delete(name);
+            await this.registerCommand(instance, client, command.commandFile)
+                .then(() => {
+                    super.log("Reloaded command " + command.name);
+                    resolve(false);
+                    return;
+                })
+            reject(false);
+        });
+    }
 
     get commands(): Map<String, Command> {
         return this._commands;

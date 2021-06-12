@@ -34,8 +34,8 @@ module.exports = class LeaderboardCommand extends Command {
         await channel.send(new MessageEmbed()
             .setAuthor("Top 15 Global Leaderboard")
             .setColor(`#${guildSettings.embedColor}`)
-            .setDescription(description)
             .setFooter(super.instance.embedFooter)
+            .setDescription(description)
             .setTimestamp()
         );
     }

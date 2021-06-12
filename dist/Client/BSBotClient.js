@@ -33,13 +33,13 @@ const BeatSaberManager_1 = __importDefault(require("../BeatSaber/BeatSaberManage
 const Mongo_1 = __importStar(require("../Utils/Mongo"));
 const Events_1 = __importDefault(require("../Enums/Events"));
 class BatClient extends discord_js_1.Client {
-    constructor(token, mongoUri) {
+    constructor(config) {
         super();
         this._token = "";
-        this._version = "0.6.1";
+        this._version = "0.7.0";
         this._embedFooter = "Created by Fascinated#4735 v" + this._version;
         this._mongoConnection = null;
-        this._token = token;
+        this._token = config.discord.token;
         this._client = this;
         this._utils = new Utils_1.default();
         this._logger = new Logger_1.default("[BS Bot]:");
@@ -49,15 +49,15 @@ class BatClient extends discord_js_1.Client {
         this._eventManager = new EventManager_1.default(this);
         this._beatSaberManager = new BeatSaberManager_1.default(this);
         setTimeout(async () => {
-            if (mongoUri) {
-                await Mongo_1.default(mongoUri, this, {});
+            if (config.mongo.connectionString) {
+                await Mongo_1.default(config.mongo.connectionString, this, {});
                 this._mongoConnection = Mongo_1.getMongoConnection();
             }
             else {
                 this._logger.warn("No MongoDB connection URI provided.");
                 this.emit(Events_1.default.DATABASE_CONNECTED, null, "");
             }
-        }, 500);
+        }, 0);
         this.load();
     }
     load() {

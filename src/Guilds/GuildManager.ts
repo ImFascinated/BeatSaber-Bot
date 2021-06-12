@@ -81,15 +81,20 @@ export default class GuildManager extends Manager {
 	
 	private setupSaveHandler() {
 		setInterval(async () => {
-			for (let guild of this._guilds) {
-				const guildSettings = guild[1];
-				const guildData = await GuildSchema.findOne({ _id: guildSettings.id }).exec();
+			await this.saveData();
+		}, 300000); // 5 Mins
+	}
 
-				guildData.prefix = guildSettings.prefix;
-				guildData.embedColor = guildSettings.embedColor;
-				guildData.save();
-			}
-		}, 60 * 60 * 5 * 1000); // 5 Mins
+	public async saveData() {
+		for (let guild of this._guilds) {
+			const guildSettings = guild[1];
+			const guildData = await GuildSchema.findOne({ _id: guildSettings.id }).exec();
+
+			guildData.prefix = guildSettings.prefix;
+			guildData.embedColor = guildSettings.embedColor;
+			guildData.save();
+		}
+		super.log("Saved guild data!");
 	}
 	
 	public getGuild(id: String): Guild | undefined {

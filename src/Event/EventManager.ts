@@ -19,7 +19,7 @@ export default class EventManager extends Manager {
     }
 
     private init(instance: BSBotClient, client: Client, silentLoad?: boolean) {
-        return glob(`${__dirname}\\Events\\**\\*.js`).then((events: any[]) => {
+        return glob(`${__dirname}${path.sep}Events${path.sep}**${path.sep}*.js`).then((events: any[]) => {
             for (const eventFile of events) {
                 delete require.cache[eventFile];
                 const { name } = path.parse(eventFile);

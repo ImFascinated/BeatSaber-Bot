@@ -8,7 +8,7 @@ import ICommandArguments from "../ICommandArguments";
 import moment from "moment";
 import Discord, {Channel, DMChannel, MessageEmbed, NewsChannel, TextChannel} from "discord.js";
 import {MapInfo} from "../../BeatSaber/BeatSaver/MapInfo";
-import {IRestResponse} from "typed-rest-client/restClient";
+import {IRestResponse} from "typed-rest-client";
 import Guild from "../../Guilds/Guild";
 import UserData from "../../UserData/UserData";
 

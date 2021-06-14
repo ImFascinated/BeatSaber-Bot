@@ -87,7 +87,7 @@ class CommandManager extends Manager_1.default {
     async loadCommands(instance, client, directory, silentLoad, reload) {
         if (directory === undefined)
             return [];
-        return glob(`${directory}\\**\\*.js`).then(async (commands) => {
+        return glob(`${directory}${path_1.default.sep}**${path_1.default.sep}*.js`).then(async (commands) => {
             for (const commandFile of commands) {
                 await this.registerCommand(instance, client, commandFile).catch(() => super.logger.log("Failed to load cmd!"));
             }

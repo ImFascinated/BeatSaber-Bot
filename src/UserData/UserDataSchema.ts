@@ -9,7 +9,56 @@ const Schema = new mongoose.Schema({
     _id: String,
     scoreSaberId: String,
     lastScore: Array,
-    scoreFeedChannelId: String
+    scoreFeedChannelId: String,
+
+    playerInfo: {
+        personal: {
+            age: Number,
+            height: Number,
+            weight: Number,
+            Gender: String,
+        },
+        hardware: {
+            headset: String,
+            controllers: String
+        },
+        settings: {
+            sabers: String,
+            favouriteMods: Array,
+            customNotes: String,
+            avatar: String,
+            height: Number,
+            noteColor: {
+                left: String,
+                right: String
+            },
+            desc: String,
+            leftController: {
+                position: {
+                    x: Number,
+                    y: Number,
+                    z: Number,
+                },
+                rotation: {
+                    x: Number,
+                    y: Number,
+                    z: Number,
+                }
+            },
+            rightController: {
+                position: {
+                    x: Number,
+                    y: Number,
+                    z: Number,
+                },
+                rotation: {
+                    x: Number,
+                    y: Number,
+                    z: Number,
+                }
+            }
+        }
+    }
 });
 
 export default mongoose.model('users', Schema);

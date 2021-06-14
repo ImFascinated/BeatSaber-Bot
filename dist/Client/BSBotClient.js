@@ -36,7 +36,7 @@ class BatClient extends discord_js_1.Client {
     constructor(config) {
         super();
         this._token = "";
-        this._version = "0.7.0";
+        this._version = "0.7.1";
         this._embedFooter = "Created by Fascinated#4735 v" + this._version;
         this._mongoConnection = null;
         this._token = config.discord.token;

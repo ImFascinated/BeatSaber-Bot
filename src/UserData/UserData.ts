@@ -1,4 +1,3 @@
-import fs from "fs";
 import {LastScore} from "./LastScore";
 
 export default class UserData {

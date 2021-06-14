@@ -12,7 +12,6 @@ import util from "util";
 import os from "os-utils";
 
 const usage = require('cpu-percentage');
-
 const readDir = util.promisify(fs.readdir);
 
 module.exports = class StatisticsCommand extends Command {
@@ -67,7 +66,7 @@ module.exports = class StatisticsCommand extends Command {
                 
                 **System Stats**
                 CPU Usage: **${(100 * cpuUsageSystem).toFixed(2)}%**
-                Memory Usage: **${instance.utils.convertBytes(os.freemem()*1024*1024)}**/**${instance.utils.convertBytes(os.totalmem()*1024*1024)}**
+                Memory Usage: **${instance.utils.convertBytes((os.totalmem()*1024*1024) - (os.freemem()*1024*1024))}**/**${instance.utils.convertBytes(os.totalmem()*1024*1024)}**
                 
                 **Node Stats**
                 CPU Usage: **${cpuUsageNode.toFixed(2)}%**

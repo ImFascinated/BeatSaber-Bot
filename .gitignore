@@ -3,6 +3,7 @@
 ./user-data
 ./node_modules
 ./resources
+./resources/images/song-art
 yarn.lock
 yarn-error.log
 tsconfig.json

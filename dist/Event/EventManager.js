@@ -15,7 +15,7 @@ class EventManager extends Manager_1.default {
         this.init(instance, instance.client);
     }
     init(instance, client, silentLoad) {
-        return glob(`${__dirname}\\Events\\**\\*.js`).then((events) => {
+        return glob(`${__dirname}${path_1.default.sep}Events${path_1.default.sep}**${path_1.default.sep}*.js`).then((events) => {
             for (const eventFile of events) {
                 delete require.cache[eventFile];
                 const { name } = path_1.default.parse(eventFile);

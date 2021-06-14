@@ -50,7 +50,7 @@ export default class BeatSaberManager extends Manager {
         //this.setupScoreFeedHandler();
     }
 
-    async createHeader(player: Player, type: string): Promise<Buffer> {
+    async createHeader(player: Player, type: string, page?: number): Promise<Buffer> {
         const canvas = Canvas.createCanvas(1200, 220);
         const context = canvas.getContext('2d');
 
@@ -93,11 +93,22 @@ export default class BeatSaberManager extends Manager {
         context.fillStyle = '#C0C0C0';
         context.fillText(`${player.playerInfo.pp}pp`, textOffset + xOffset, y);
 
-        context.font = `40px Roboto`;
-        context.fillStyle = '#ffffff';
-        context.textAlign = 'right';
-        context.fillText(`${type.toUpperCase()}`, canvas.width-60, canvas.height-xOffset);
+        if (page) {
+            context.font = `40px Roboto`;
+            context.fillStyle = '#ffffff';
+            context.textAlign = 'right';
+            context.fillText(`${type.toUpperCase()}`, canvas.width-60, canvas.height-xOffset - 30);
 
+            context.font = `35px Roboto`;
+            context.fillStyle = '#C0C0C0';
+            context.textAlign = 'right';
+            context.fillText(`PAGE ${page}`, canvas.width-213, canvas.height-xOffset + 2);
+        } else {
+            context.font = `40px Roboto`;
+            context.fillStyle = '#ffffff';
+            context.textAlign = 'right';
+            context.fillText(`${type.toUpperCase()}`, canvas.width-60, canvas.height-xOffset);
+        }
         return canvas.toBuffer();
     }
 
@@ -251,13 +262,13 @@ export default class BeatSaberManager extends Manager {
         return canvas.toBuffer();
     }
 
-    async createSongsImage(player: Player, type: string): Promise<Buffer | undefined> {
+    async createSongsImage(player: Player, type: string, page?: number): Promise<Buffer | undefined> {
         const canvas = Canvas.createCanvas(1200, 1000);
         const context = canvas.getContext('2d');
 
         const background = await Canvas.loadImage(this.backgroundBuffer)
 
-        const songs = await this.fetchScores(player.playerInfo.playerId, type, 1);
+        const songs = await this.fetchScores(player.playerInfo.playerId, type, page == null ? 1 : page);
 
         if (songs == null) {
             return undefined;
@@ -808,34 +819,97 @@ export default class BeatSaberManager extends Manager {
         return canvas.toBuffer();
     }
 
-    async getPlayer(id: string): Promise<Player | null> {
-        const response: IRestResponse<Player> = await this.restClientScoreSaber.get<Player>(`player/${id}/full`);
-        if (response.result === null) {
-            console.log(`Failed to fetch player ${id} (status=${response.statusCode})`);
-            return null;
+    async createMapInfo(map: MapInfo): Promise<Buffer> {
+        const canvas = Canvas.createCanvas(1200, 700);
+        const context = canvas.getContext('2d');
+
+        await this.instance.utils.sleep(1).then(async() => {
+            const res = await axios.get("https://beatsaver.com" + map.coverURL,
+                {
+                    responseType: 'arraybuffer',
+                    headers: { "User-Agent": { "ScraperBot": "1.0" } }
+                });
+            const artImage = await Canvas.loadImage(Buffer.from(res.data, "utf-8"));
+            context.drawImage(artImage, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            for(let i = 0; i < pixels.length; i += 4) {
+                pixels[i] = pixels[i] * 0.30;
+                pixels[i+1] = pixels[i+1] * 0.30;
+                pixels[i+2] = pixels[i+2] * 0.30;
+            }
+            context.putImageData(imageData, 0, 0);
+        });
+
+        let y = 55;
+        let x = 15;
+        let infoX = 310;
+
+        context.font = `55px Roboto`;
+
+        let types = [
+            "BPM",
+            "Duration"
+        ];
+
+        let duration = map.metadata.duration;
+        if (!duration || duration == 0) {
+            const characteristics: MapDifficulty = map.metadata.characteristics[0];
+            if (characteristics.difficulties.easy) {
+                if (characteristics.difficulties.easy.duration && characteristics.difficulties.easy.duration > 0) {
+                    duration = characteristics.difficulties.easy.duration;
+                }
+            }
+            if (characteristics.difficulties.normal) {
+                if (characteristics.difficulties.normal.duration && characteristics.difficulties.normal.duration > 0) {
+                    duration = characteristics.difficulties.normal.duration;
+                }
+            }
+            if (characteristics.difficulties.hard) {
+                if (characteristics.difficulties.hard.duration && characteristics.difficulties.hard.duration > 0) {
+                    duration = characteristics.difficulties.hard.duration;
+                }
+            }
+            if (characteristics.difficulties.expert) {
+                if (characteristics.difficulties.expert.duration && characteristics.difficulties.expert.duration > 0) {
+                    duration = characteristics.difficulties.expert.duration;
+                }
+            }
+            if (characteristics.difficulties.expertPlus) {
+                if (characteristics.difficulties.expertPlus.duration && characteristics.difficulties.expertPlus.duration > 0) {
+                    duration = characteristics.difficulties.expertPlus.duration;
+                }
+            }
+        }
+        console.log(duration)
+
+        for (const type of types) {
+            switch (type) {
+                case "BPM": {
+                    context.fillStyle = "#C0C0C0";
+                    context.textAlign = 'left';
+                    context.fillText(type + ":", x, y, 1000);
+
+                    context.fillStyle = "#fff";
+                    context.textAlign = 'left';
+                    context.fillText(map.metadata.bpm.toString(), infoX, y, 1000);
+                    break;
+                }
+                case "Duration": {
+                    context.fillStyle = "#C0C0C0";
+                    context.textAlign = 'left';
+                    context.fillText(type + ":", x, y, 1000);
+
+                    context.fillStyle = "#fff";
+                    context.textAlign = 'left';
+                    context.fillText(super.instance.utils.formatTime(duration * 1000, true), infoX, y, 1000);
+                    break;
+                }
+            }
+            y += 55;
         }
 
-        return response.result;
-    }
-
-    async fetchScores(id: string, order: string, offset: number): Promise<Score[] | null>  {
-        const response: IRestResponse<ScoreReply> = await this.restClientScoreSaber.get<ScoreReply>(`player/${id}/scores/${order}/${offset}`);
-        if (response.result === null) {
-            console.log(`Failed to fetch scores for ${id} (status=${response.statusCode})`);
-            return null;
-        }
-
-        return response.result.scores;
-    }
-
-    async fetchLeaderboard(): Promise<PlayerInfo[]>  {
-        const response: IRestResponse<LeaderboardReply> = await this.restClientScoreSaber.get<LeaderboardReply>(`players/1`);
-        if (response.result === null) {
-            console.log(`Failed to fetch top 50 scores (status=${response.statusCode})`);
-            return [];
-        }
-
-        return response.result.players;
+        return canvas.toBuffer();
     }
 
     private toDiff(diff: string, diffs: MapDifficulty) {
@@ -964,5 +1038,40 @@ export default class BeatSaberManager extends Manager {
             exists = false;
         }
         return exists;
+    }
+
+    async getPlayer(id: string): Promise<Player | null> {
+        const response: IRestResponse<Player> = await this.restClientScoreSaber.get<Player>(`player/${id}/full`);
+        if (response.result === null) {
+            console.log(`Failed to fetch player ${id} (status=${response.statusCode})`);
+            return null;
+        }
+
+        return response.result;
+    }
+
+    async fetchScores(id: string, order: string, offset: number): Promise<Score[] | null>  {
+        const response: IRestResponse<ScoreReply> = await this.restClientScoreSaber.get<ScoreReply>(`player/${id}/scores/${order}/${offset}`);
+        if (response.result === null) {
+            console.log(`Failed to fetch scores for ${id} (status=${response.statusCode})`);
+            return null;
+        }
+
+        return response.result.scores;
+    }
+
+    async fetchLeaderboard(): Promise<PlayerInfo[]>  {
+        const response: IRestResponse<LeaderboardReply> = await this.restClientScoreSaber.get<LeaderboardReply>(`players/1`);
+        if (response.result === null) {
+            console.log(`Failed to fetch top 50 scores (status=${response.statusCode})`);
+            return [];
+        }
+
+        return response.result.players;
+    }
+
+    async fetchMapInfo(key: string): Promise<MapInfo | null>  {
+        const response: IRestResponse<MapInfo> = await this.restClientBeatSaver.get<MapInfo>(`maps/detail/${key}`);
+        return response.result;
     }
 }

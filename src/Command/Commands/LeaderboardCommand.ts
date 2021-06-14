@@ -5,7 +5,6 @@
 
 import Command from "../Command";
 import ICommandArguments from "../ICommandArguments";
-import {Player} from "../../BeatSaber/ScoreSaber/Player";
 import {MessageEmbed} from "discord.js";
 import {PlayerInfo} from "../../BeatSaber/ScoreSaber/PlayerInfo";
 

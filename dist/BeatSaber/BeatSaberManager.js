@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const restClient_1 = require("typed-rest-client/restClient");
+const typed_rest_client_1 = require("typed-rest-client");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const canvas_1 = __importDefault(require("canvas"));
@@ -40,8 +40,8 @@ class BeatSaberManager extends Manager_1.default {
         super(instance);
         this.SCORESABER_HOST = 'https://new.scoresaber.com/api/';
         this.BEATSAVER_HOST = 'https://beatsaver.com/api/';
-        this.restClientScoreSaber = new restClient_1.RestClient(null, this.SCORESABER_HOST);
-        this.restClientBeatSaver = new restClient_1.RestClient("(+http://www.example.com/ScraperBot.html)", this.BEATSAVER_HOST);
+        this.restClientScoreSaber = new typed_rest_client_1.RestClient(null, this.SCORESABER_HOST);
+        this.restClientBeatSaver = new typed_rest_client_1.RestClient("(+http://www.example.com/ScraperBot.html)", this.BEATSAVER_HOST);
         this.backgroundBuffer = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../../resources/images/HeaderBackground.png'));
         this.noImageFoundBuffer = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../../resources/images/NoImageFound.jpg'));
         this.playerStatsBackgroundBuffer = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '../../resources/images/PlayerStatsBackground.png'));
@@ -52,7 +52,7 @@ class BeatSaberManager extends Manager_1.default {
         // Disabled for now
         //this.setupScoreFeedHandler();
     }
-    async createHeader(player, type) {
+    async createHeader(player, type, page) {
         const canvas = canvas_1.default.createCanvas(1200, 220);
         const context = canvas.getContext('2d');
         const background = await canvas_1.default.loadImage(this.backgroundBuffer);
@@ -87,10 +87,22 @@ class BeatSaberManager extends Manager_1.default {
         context.font = `40px Roboto`;
         context.fillStyle = '#C0C0C0';
         context.fillText(`${player.playerInfo.pp}pp`, textOffset + xOffset, y);
-        context.font = `40px Roboto`;
-        context.fillStyle = '#ffffff';
-        context.textAlign = 'right';
-        context.fillText(`${type.toUpperCase()}`, canvas.width - 60, canvas.height - xOffset);
+        if (page) {
+            context.font = `40px Roboto`;
+            context.fillStyle = '#ffffff';
+            context.textAlign = 'right';
+            context.fillText(`${type.toUpperCase()}`, canvas.width - 60, canvas.height - xOffset - 30);
+            context.font = `35px Roboto`;
+            context.fillStyle = '#C0C0C0';
+            context.textAlign = 'right';
+            context.fillText(`PAGE ${page}`, canvas.width - 213, canvas.height - xOffset + 2);
+        }
+        else {
+            context.font = `40px Roboto`;
+            context.fillStyle = '#ffffff';
+            context.textAlign = 'right';
+            context.fillText(`${type.toUpperCase()}`, canvas.width - 60, canvas.height - xOffset);
+        }
         return canvas.toBuffer();
     }
     async createProfileImage(player) {
@@ -211,11 +223,11 @@ class BeatSaberManager extends Manager_1.default {
         context.fillText(`${player.scoreStats.rankedPlayCount}`, canvas.width - 250, 328);
         return canvas.toBuffer();
     }
-    async createSongsImage(player, type) {
+    async createSongsImage(player, type, page) {
         const canvas = canvas_1.default.createCanvas(1200, 1000);
         const context = canvas.getContext('2d');
         const background = await canvas_1.default.loadImage(this.backgroundBuffer);
-        const songs = await this.fetchScores(player.playerInfo.playerId, type, 1);
+        const songs = await this.fetchScores(player.playerInfo.playerId, type, page == null ? 1 : page);
         if (songs == null) {
             return undefined;
         }
@@ -686,45 +698,103 @@ class BeatSaberManager extends Manager_1.default {
         context.drawImage(chartImage, 0, 0, canvas.width, canvas.height);
         return canvas.toBuffer();
     }
-    async getPlayer(id) {
-        const response = await this.restClientScoreSaber.get(`player/${id}/full`);
-        if (response.result === null) {
-            console.log(`Failed to fetch player ${id} (status=${response.statusCode})`);
-            return null;
+    async createMapInfo(map) {
+        const canvas = canvas_1.default.createCanvas(1200, 700);
+        const context = canvas.getContext('2d');
+        await this.instance.utils.sleep(1).then(async () => {
+            const res = await axios_1.default.get("https://beatsaver.com" + map.coverURL, {
+                responseType: 'arraybuffer',
+                headers: { "User-Agent": { "ScraperBot": "1.0" } }
+            });
+            const artImage = await canvas_1.default.loadImage(Buffer.from(res.data, "utf-8"));
+            context.drawImage(artImage, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            for (let i = 0; i < pixels.length; i += 4) {
+                pixels[i] = pixels[i] * 0.30;
+                pixels[i + 1] = pixels[i + 1] * 0.30;
+                pixels[i + 2] = pixels[i + 2] * 0.30;
+            }
+            context.putImageData(imageData, 0, 0);
+        });
+        let y = 55;
+        let x = 15;
+        let infoX = 310;
+        context.font = `55px Roboto`;
+        let types = [
+            "BPM",
+            "Duration"
+        ];
+        let duration = map.metadata.duration;
+        if (!duration || duration == 0) {
+            const characteristics = map.metadata.characteristics[0];
+            if (characteristics.difficulties.easy) {
+                if (characteristics.difficulties.easy.duration && characteristics.difficulties.easy.duration > 0) {
+                    duration = characteristics.difficulties.easy.duration;
+                }
+            }
+            if (characteristics.difficulties.normal) {
+                if (characteristics.difficulties.normal.duration && characteristics.difficulties.normal.duration > 0) {
+                    duration = characteristics.difficulties.normal.duration;
+                }
+            }
+            if (characteristics.difficulties.hard) {
+                if (characteristics.difficulties.hard.duration && characteristics.difficulties.hard.duration > 0) {
+                    duration = characteristics.difficulties.hard.duration;
+                }
+            }
+            if (characteristics.difficulties.expert) {
+                if (characteristics.difficulties.expert.duration && characteristics.difficulties.expert.duration > 0) {
+                    duration = characteristics.difficulties.expert.duration;
+                }
+            }
+            if (characteristics.difficulties.expertPlus) {
+                if (characteristics.difficulties.expertPlus.duration && characteristics.difficulties.expertPlus.duration > 0) {
+                    duration = characteristics.difficulties.expertPlus.duration;
+                }
+            }
         }
-        return response.result;
-    }
-    async fetchScores(id, order, offset) {
-        const response = await this.restClientScoreSaber.get(`player/${id}/scores/${order}/${offset}`);
-        if (response.result === null) {
-            console.log(`Failed to fetch scores for ${id} (status=${response.statusCode})`);
-            return null;
+        console.log(duration);
+        for (const type of types) {
+            switch (type) {
+                case "BPM": {
+                    context.fillStyle = "#C0C0C0";
+                    context.textAlign = 'left';
+                    context.fillText(type + ":", x, y, 1000);
+                    context.fillStyle = "#fff";
+                    context.textAlign = 'left';
+                    context.fillText(map.metadata.bpm.toString(), infoX, y, 1000);
+                    break;
+                }
+                case "Duration": {
+                    context.fillStyle = "#C0C0C0";
+                    context.textAlign = 'left';
+                    context.fillText(type + ":", x, y, 1000);
+                    context.fillStyle = "#fff";
+                    context.textAlign = 'left';
+                    context.fillText(super.instance.utils.formatTime(duration * 1000, true), infoX, y, 1000);
+                    break;
+                }
+            }
+            y += 55;
         }
-        return response.result.scores;
-    }
-    async fetchLeaderboard() {
-        const response = await this.restClientScoreSaber.get(`players/1`);
-        if (response.result === null) {
-            console.log(`Failed to fetch top 50 scores (status=${response.statusCode})`);
-            return [];
-        }
-        return response.result.players;
+        return canvas.toBuffer();
     }
     toDiff(diff, diffs) {
         switch (diff) {
-            case "Easy": {
+            case "EASY": {
                 return diffs.difficulties.easy;
             }
-            case "Normal": {
+            case "NORMAL": {
                 return diffs.difficulties.normal;
             }
-            case "Hard": {
+            case "HARD": {
                 return diffs.difficulties.hard;
             }
-            case "Expert": {
+            case "EXPERT": {
                 return diffs.difficulties.expert;
             }
-            case "Expert Plus": {
+            case "EXPERT+": {
                 return diffs.difficulties.expertPlus;
             }
         }
@@ -813,7 +883,7 @@ class BeatSaberManager extends Manager_1.default {
         return readFile(path_1.default.resolve(__dirname, `../../resources/images/song-art/${songHash}.png`));
     }
     async isSongArtSaved(songHash) {
-        let exists = false;
+        let exists;
         try {
             await this.getSongArt(songHash);
             exists = true;
@@ -822,6 +892,34 @@ class BeatSaberManager extends Manager_1.default {
             exists = false;
         }
         return exists;
+    }
+    async getPlayer(id) {
+        const response = await this.restClientScoreSaber.get(`player/${id}/full`);
+        if (response.result === null) {
+            console.log(`Failed to fetch player ${id} (status=${response.statusCode})`);
+            return null;
+        }
+        return response.result;
+    }
+    async fetchScores(id, order, offset) {
+        const response = await this.restClientScoreSaber.get(`player/${id}/scores/${order}/${offset}`);
+        if (response.result === null) {
+            console.log(`Failed to fetch scores for ${id} (status=${response.statusCode})`);
+            return null;
+        }
+        return response.result.scores;
+    }
+    async fetchLeaderboard() {
+        const response = await this.restClientScoreSaber.get(`players/1`);
+        if (response.result === null) {
+            console.log(`Failed to fetch top 50 scores (status=${response.statusCode})`);
+            return [];
+        }
+        return response.result.players;
+    }
+    async fetchMapInfo(key) {
+        const response = await this.restClientBeatSaver.get(`maps/detail/${key}`);
+        return response.result;
     }
 }
 exports.default = BeatSaberManager;

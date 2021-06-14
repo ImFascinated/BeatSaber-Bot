@@ -5,7 +5,7 @@
 
 import Command from "../Command";
 import ICommandArguments from "../ICommandArguments";
-import Discord, {MessageEmbed} from "discord.js";
+import Discord from "discord.js";
 
 module.exports = class HistoryCommand extends Command {
     constructor() {

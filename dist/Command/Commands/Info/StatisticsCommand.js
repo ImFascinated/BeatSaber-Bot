@@ -79,7 +79,7 @@ module.exports = class StatisticsCommand extends Command_1.default {
                 
                 **System Stats**
                 CPU Usage: **${(100 * cpuUsageSystem).toFixed(2)}%**
-                Memory Usage: **${instance.utils.convertBytes(os_utils_1.default.freemem() * 1024 * 1024)}**/**${instance.utils.convertBytes(os_utils_1.default.totalmem() * 1024 * 1024)}**
+                Memory Usage: **${instance.utils.convertBytes((os_utils_1.default.totalmem() * 1024 * 1024) - (os_utils_1.default.freemem() * 1024 * 1024))}**/**${instance.utils.convertBytes(os_utils_1.default.totalmem() * 1024 * 1024)}**
                 
                 **Node Stats**
                 CPU Usage: **${cpuUsageNode.toFixed(2)}%**

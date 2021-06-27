@@ -12,10 +12,11 @@ If you have any suggestions or features you want to see, send me a dm on discord
 • `bs!history` - Shows you your previous rank over 50 days<br />
 • `bs!leaderboard` - Shows you the top 15 people in the global leaderboard<br />
 • `bs!link (scoresaber link)` - Link your scoresaber account to the bot<br />
+• `bs!map [map key]` - Get information about a map<br />
 • `bs!profile` - Check your score saber profile<br />
-• `bs!recentsong [offset]` - Check out your most recent play<br />
+• `bs!recentsong [user] [offset]` - Check out your most recent play<br />
 • `bs!recentsongs` - Check your 6 most recent plays<br />
-• `bs!topsong [offset]` - Check your best play<br />
+• `bs!topsong [user] [offset]` - Check your best play<br />
 • `bs!topsongs` - Check out your 6 best plays<br />
 • `bs!unlink` - Unlink your scoresaber account<br />
 
